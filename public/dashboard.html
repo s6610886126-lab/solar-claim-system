@@ -18,9 +18,12 @@
             <a href="/claim-form">📝 แจ้งเคลม</a>
         </nav>
         <div class="user-info">
-            <span style="font-size:0.85rem;color:var(--text-secondary)">Admin</span>
-            <div class="avatar">A</div>
-            <a href="/" class="btn btn-ghost btn-sm" style="margin-left:4px;" title="ออกจากระบบ">🚪 ออก</a>
+            <div style="text-align: right; margin-right: 10px;">
+                <div id="userName" style="font-weight: 600; font-size: 0.9rem;">Admin</div>
+                <div id="userRole" style="font-size: 0.75rem; color: var(--text-secondary)">Administrator</div>
+            </div>
+            <div class="avatar" id="userAvatar">A</div>
+            <button onclick="logout()" class="btn btn-ghost btn-sm" style="margin-left:4px;" title="ออกจากระบบ">🚪 ออก</button>
         </div>
     </header>
 
@@ -56,7 +59,7 @@
         </div>
 
         <!-- Charts -->
-        <div class="charts-grid">
+        <div class="charts-grid" id="chartsSection">
             <div class="chart-card animate-in">
                 <h3>📈 เคลมรายเดือน (6 เดือนล่าสุด)</h3>
                 <div class="chart-bar-container" id="monthlyChart"></div>
@@ -74,9 +77,9 @@
 
         <!-- Filters & Table -->
         <div class="section-header animate-in">
-            <h2>📋 รายการเคลมทั้งหมด</h2>
+            <h2 id="tableTitle">📋 รายการเคลมทั้งหมด</h2>
             <div style="display:flex;gap:8px;">
-                <a href="/api/export/excel" class="btn btn-success btn-sm" download>📥 ดาวน์โหลด Excel</a>
+                <a href="/api/export/excel" class="btn btn-success btn-sm" id="exportBtn" download>📥 ดาวน์โหลด Excel</a>
                 <a href="/claim-form" class="btn btn-primary btn-sm">+ แจ้งเคลมใหม่</a>
             </div>
         </div>

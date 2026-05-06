@@ -3,6 +3,10 @@ const statusLabels = { pending:'รอดำเนินการ', reviewing:'�
 const sevLabels = { low:'🟢 ต่ำ', medium:'🟡 ปานกลาง', high:'🟠 สูง', critical:'🔴 วิกฤต' };
 let currentClaim = null;
 
+// === Session Management ===
+const currentUser = JSON.parse(localStorage.getItem('solar_user'));
+if (!currentUser) { window.location.href = '/'; }
+
 function showToast(msg, type='success') {
     const c = document.getElementById('toastContainer');
     const t = document.createElement('div');
@@ -29,6 +33,13 @@ async function loadClaim() {
         const res = await fetch(`/api/claims/${id}`);
         if (!res.ok) { window.location.href = '/dashboard'; return; }
         const { data } = await res.json();
+        
+        // Security: Check if customer can view this claim
+        if (currentUser.role === 'customer' && data.customer.email.toLowerCase() !== currentUser.email.toLowerCase()) {
+            window.location.href = '/dashboard';
+            return;
+        }
+
         currentClaim = data;
         renderClaim(data);
     } catch (e) { console.error(e); }
@@ -39,15 +50,17 @@ function renderClaim(c) {
     document.getElementById('claimSubtitle').textContent = `สร้างเมื่อ ${formatDate(c.createdAt)}`;
     document.getElementById('currentStatus').innerHTML = `<span class="badge badge-${c.status}" style="font-size:0.9rem;padding:6px 16px;">${statusLabels[c.status]}</span>`;
 
-    // Action buttons based on status
+    // Action buttons based on status (Admin only)
     let btns = '';
-    if (c.status === 'pending') {
-        btns = `<button class="btn btn-primary btn-sm" onclick="openStatusModal('reviewing','ตรวจสอบ')">🔍 เริ่มตรวจสอบ</button>`;
-    } else if (c.status === 'reviewing') {
-        btns = `<button class="btn btn-success btn-sm" onclick="openStatusModal('approved','อนุมัติ')">✅ อนุมัติ</button>
-                 <button class="btn btn-danger btn-sm" onclick="openStatusModal('rejected','ไม่อนุมัติ')">❌ ไม่อนุมัติ</button>`;
-    } else if (c.status === 'approved') {
-        btns = `<button class="btn btn-primary btn-sm" onclick="openStatusModal('completed','เสร็จสิ้น')">🏁 เสร็จสิ้น</button>`;
+    if (currentUser.role === 'admin') {
+        if (c.status === 'pending') {
+            btns = `<button class="btn btn-primary btn-sm" onclick="openStatusModal('reviewing','ตรวจสอบ')">🔍 เริ่มตรวจสอบ</button>`;
+        } else if (c.status === 'reviewing') {
+            btns = `<button class="btn btn-success btn-sm" onclick="openStatusModal('approved','อนุมัติ')">✅ อนุมัติ</button>
+                     <button class="btn btn-danger btn-sm" onclick="openStatusModal('rejected','ไม่อนุมัติ')">❌ ไม่อนุมัติ</button>`;
+        } else if (c.status === 'approved') {
+            btns = `<button class="btn btn-primary btn-sm" onclick="openStatusModal('completed','เสร็จสิ้น')">🏁 เสร็จสิ้น</button>`;
+        }
     }
     document.getElementById('actionButtons').innerHTML = btns;
 
@@ -93,6 +106,11 @@ function renderClaim(c) {
 
     // Notes
     renderNotes(c.notes);
+
+    // Hide add note for customer if needed (or keep it for communication)
+    if (currentUser.role === 'customer') {
+        document.querySelector('.note-input-section').style.display = 'none';
+    }
 }
 
 function renderNotes(notes) {
@@ -112,7 +130,7 @@ async function addNote() {
     try {
         const res = await fetch(`/api/claims/${currentClaim.id}/notes`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, author: 'Admin' })
+            body: JSON.stringify({ text, author: currentUser.name })
         });
         if (res.ok) {
             document.getElementById('newNote').value = '';

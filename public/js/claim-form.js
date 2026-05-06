@@ -1,6 +1,10 @@
 // === Claim Form JS ===
 let uploadedImages = [];
 
+// === Session Management ===
+const currentUser = JSON.parse(localStorage.getItem('solar_user'));
+if (!currentUser) { window.location.href = '/'; }
+
 function showToast(msg, type='success') {
     const c = document.getElementById('toastContainer');
     const t = document.createElement('div');
@@ -8,6 +12,14 @@ function showToast(msg, type='success') {
     t.innerHTML = `${type==='success'?'✅':type==='error'?'❌':'ℹ️'} ${msg}`;
     c.appendChild(t);
     setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 3000);
+}
+
+// Auto-fill customer info
+if (currentUser.role === 'customer') {
+    document.getElementById('custName').value = currentUser.name;
+    document.getElementById('custEmail').value = currentUser.email;
+    // Optionally make them readonly for customers
+    document.getElementById('custEmail').readOnly = true;
 }
 
 // === Image Upload ===

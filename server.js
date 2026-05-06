@@ -24,7 +24,10 @@ function readClaims() {
             fs.writeFileSync(DATA_FILE, JSON.stringify(initial, null, 2), 'utf8');
             return initial;
         }
-        return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+        const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+        if (!data.users) data.users = [];
+        if (!data.claims) data.claims = [];
+        return data;
     } catch (err) { return { claims: [], users: [] }; }
 }
 
@@ -228,9 +231,59 @@ function generateMockData() {
 }
 
 // === API ===
+app.post('/api/register', (req, res) => {
+    const { name, email, phone, password } = req.body;
+    const data = readClaims();
+    
+    if (data.users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+        return res.status(400).json({ success: false, message: 'อีเมลนี้ถูกใช้งานแล้ว' });
+    }
+
+    const newUser = { id: uuidv4(), name, email, phone, password, role: 'customer', createdAt: new Date().toISOString() };
+    data.users.push(newUser);
+    writeClaims(data);
+    
+    res.status(201).json({ success: true, message: 'ลงทะเบียนสำเร็จ' });
+});
+
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    const data = readClaims();
+
+    // Check registered users first
+    const user = data.users.find(u => (u.email.toLowerCase() === username.toLowerCase() || u.name === username) && u.password === password);
+    if (user) {
+        return res.json({ success: true, user: { name: user.name, email: user.email, role: user.role } });
+    }
+
+    // Simple demo logic fallback
+    if (username === 'admin' && password === 'admin') {
+        return res.json({ success: true, user: { name: 'System Admin', email: 'admin@solar.com', role: 'admin' } });
+    }
+    // If it looks like an email, treat as customer (demo mode fallback)
+    if (username.includes('@')) {
+        // If this email is already registered, they MUST use the correct password above
+        const isRegistered = data.users.some(u => u.email.toLowerCase() === username.toLowerCase());
+        if (isRegistered) {
+            return res.status(401).json({ success: false, message: 'รหัสผ่านไม่ถูกต้องสำหรับบัญชีนี้' });
+        }
+
+        const customerClaim = data.claims.find(c => c.customer.email.toLowerCase() === username.toLowerCase());
+        const customerName = customerClaim ? customerClaim.customer.name : 'Customer';
+        return res.json({ success: true, user: { name: customerName, email: username, role: 'customer' } });
+    }
+    res.status(401).json({ success: false, message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
+});
+
 app.get('/api/claims', (req, res) => {
     const data = readClaims(); let claims = data.claims;
-    const { status, equipment, severity, search, sort, order } = req.query;
+    const { status, equipment, severity, search, userRole, userEmail } = req.query;
+
+    // Role-based filtering
+    if (userRole === 'customer' && userEmail) {
+        claims = claims.filter(c => c.customer.email.toLowerCase() === userEmail.toLowerCase());
+    }
+
     if(status&&status!=='all') claims=claims.filter(c=>c.status===status);
     if(equipment&&equipment!=='all') claims=claims.filter(c=>c.equipment.type===equipment);
     if(severity&&severity!=='all') claims=claims.filter(c=>c.problem.severity===severity);
@@ -247,7 +300,15 @@ app.get('/api/claims/:id', (req, res) => {
 
 app.post('/api/claims', (req, res) => {
     const data=readClaims();
-    const newClaim = { id:uuidv4(), claimNumber:`CLM-${String(2024001+data.claims.length).padStart(7,'0')}`,
+    
+    // Find max claim number to avoid duplicates
+    let maxNum = 2024000;
+    data.claims.forEach(c => {
+        const num = parseInt(c.claimNumber.split('-')[1]);
+        if (num > maxNum) maxNum = num;
+    });
+    
+    const newClaim = { id:uuidv4(), claimNumber:`CLM-${String(maxNum + 1).padStart(7,'0')}`,
         customer:req.body.customer, equipment:req.body.equipment, warranty:req.body.warranty, problem:req.body.problem,
         status:'pending', timeline:[{status:'pending',date:new Date().toISOString(),note:'รับเรื่องเคลมเข้าระบบ'}],
         notes:[], createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() };
@@ -287,7 +348,14 @@ app.delete('/api/claims/:id', (req, res) => {
 });
 
 app.get('/api/stats', (req, res) => {
-    const data=readClaims(); const claims=data.claims;
+    const data=readClaims(); let claims=data.claims;
+    const { userRole, userEmail } = req.query;
+
+    // Role-based filtering
+    if (userRole === 'customer' && userEmail) {
+        claims = claims.filter(c => c.customer.email.toLowerCase() === userEmail.toLowerCase());
+    }
+
     const s={total:claims.length,pending:claims.filter(c=>c.status==='pending').length,
         reviewing:claims.filter(c=>c.status==='reviewing').length,approved:claims.filter(c=>c.status==='approved').length,
         rejected:claims.filter(c=>c.status==='rejected').length,completed:claims.filter(c=>c.status==='completed').length};

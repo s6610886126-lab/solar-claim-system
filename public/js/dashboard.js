@@ -15,6 +15,40 @@ function formatDate(d) {
     return new Date(d).toLocaleDateString('th-TH', { day:'2-digit', month:'short', year:'numeric' });
 }
 
+// === Session Management ===
+const currentUser = JSON.parse(localStorage.getItem('solar_user'));
+if (!currentUser) { 
+    window.location.href = '/';
+    // Stop execution
+    throw new Error('Not authenticated');
+}
+
+function logout() {
+    localStorage.removeItem('solar_user');
+    window.location.href = '/';
+}
+
+function initDashboard() {
+    document.getElementById('userName').textContent = currentUser.name;
+    document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Customer';
+    document.getElementById('userAvatar').textContent = currentUser.name.charAt(0);
+
+    if (currentUser.role !== 'admin') {
+        // Hide admin-only sections
+        document.getElementById('statsGrid').style.display = 'none';
+        document.getElementById('chartsSection').style.display = 'none';
+        document.getElementById('exportBtn').style.display = 'none';
+        
+        // Update header for customer
+        const header = document.querySelector('.page-header');
+        header.querySelector('h1').textContent = '📋 รายการเคลมของคุณ';
+        header.querySelector('p').textContent = 'ติดตามสถานะการเคลมอุปกรณ์โซลาร์เซลล์ของคุณ';
+        
+        document.getElementById('tableTitle').style.display = 'none'; // Header already says it
+    }
+}
+initDashboard();
+
 // Animate counter
 function animateCount(el, target) {
     let current = 0;
@@ -29,7 +63,8 @@ function animateCount(el, target) {
 // Load stats
 async function loadStats() {
     try {
-        const res = await fetch('/api/stats');
+        const params = new URLSearchParams({ userRole: currentUser.role, userEmail: currentUser.email });
+        const res = await fetch(`/api/stats?${params}`);
         const { data } = await res.json();
         const s = data.stats;
 
@@ -100,6 +135,10 @@ async function loadClaims() {
         if (status !== 'all') params.append('status', status);
         if (equipment !== 'all') params.append('equipment', equipment);
         if (search) params.append('search', search);
+        
+        // Add user context
+        params.append('userRole', currentUser.role);
+        params.append('userEmail', currentUser.email);
 
         const res = await fetch(`/api/claims?${params}`);
         const { data } = await res.json();
@@ -123,8 +162,9 @@ async function loadClaims() {
                 <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer"><span class="badge badge-${c.status}">${statusLabels[c.status]}</span></td>
                 <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer">${formatDate(c.createdAt)}</td>
                 <td>
-                    <button class="btn btn-ghost btn-sm" onclick="openModal('${c.id}','${c.status}')" title="เปลี่ยนสถานะ">⚙️</button>
-                    <button class="btn btn-ghost btn-sm" onclick="deleteClaim('${c.id}')" title="ลบ" style="color:var(--danger)">🗑</button>
+                    <button class="btn btn-ghost btn-sm" onclick="openModal('${c.id}','${c.status}')" title="เปลี่ยนสถานะ" ${currentUser.role !== 'admin' ? 'style="display:none"' : ''}>⚙️</button>
+                    <button class="btn btn-ghost btn-sm" onclick="deleteClaim('${c.id}')" title="ลบ" style="color:var(--danger); ${currentUser.role !== 'admin' ? 'display:none' : ''}">🗑</button>
+                    <button class="btn btn-ghost btn-sm" onclick="window.location.href='/claim-detail?id=${c.id}'" title="ดูรายละเอียด">👁️</button>
                 </td>
             </tr>
         `).join('');
@@ -195,5 +235,7 @@ document.getElementById('filterStatus').addEventListener('change', loadClaims);
 document.getElementById('filterEquipment').addEventListener('change', loadClaims);
 
 // Init
-loadStats();
+if (currentUser.role === 'admin') {
+    loadStats();
+}
 loadClaims();
