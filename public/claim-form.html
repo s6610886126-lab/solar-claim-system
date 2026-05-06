@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Claim - แจ้งเคลม</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <a href="/dashboard" class="logo">
+            <svg viewBox="0 0 32 32" width="32" height="32"><circle cx="16" cy="16" r="6" fill="#F59E0B"/><g stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"><line x1="16" y1="1" x2="16" y2="6"/><line x1="16" y1="26" x2="16" y2="31"/><line x1="1" y1="16" x2="6" y2="16"/><line x1="26" y1="16" x2="31" y2="16"/><line x1="5.4" y1="5.4" x2="8.9" y2="8.9"/><line x1="23.1" y1="23.1" x2="26.6" y2="26.6"/><line x1="5.4" y1="26.6" x2="8.9" y2="23.1"/><line x1="23.1" y1="8.9" x2="26.6" y2="5.4"/></g></svg>
+            Solar Claim
+        </a>
+        <nav>
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/claim-form" class="active">📝 แจ้งเคลม</a>
+        </nav>
+        <div class="user-info">
+            <span style="font-size:0.85rem;color:var(--text-secondary)">Admin</span>
+            <div class="avatar">A</div>
+            <a href="/" class="btn btn-ghost btn-sm" style="margin-left:4px;" title="ออกจากระบบ">🚪 ออก</a>
+        </div>
+    </header>
+
+    <main class="page-container">
+        <div class="page-header animate-in">
+            <h1>📝 แจ้งเคลมอุปกรณ์</h1>
+            <p>กรอกข้อมูลเพื่อแจ้งเคลมอุปกรณ์โซลาร์เซลล์</p>
+        </div>
+
+        <form id="claimForm" class="card animate-in" style="max-width:900px;">
+            <!-- ข้อมูลลูกค้า -->
+            <div class="detail-section">
+                <h3>👤 ข้อมูลลูกค้า</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="custName">ชื่อ-นามสกุล *</label>
+                        <input type="text" id="custName" class="form-control" placeholder="ชื่อ-นามสกุล" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="custPhone">เบอร์โทรศัพท์ *</label>
+                        <input type="tel" id="custPhone" class="form-control" placeholder="08X-XXX-XXXX" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="custEmail">อีเมล</label>
+                        <input type="email" id="custEmail" class="form-control" placeholder="email@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="custAddress">ที่อยู่ *</label>
+                        <input type="text" id="custAddress" class="form-control" placeholder="ที่อยู่สำหรับจัดส่ง" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ข้อมูลอุปกรณ์ -->
+            <div class="detail-section">
+                <h3>🔧 ข้อมูลอุปกรณ์</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eqType">ประเภทอุปกรณ์ *</label>
+                        <select id="eqType" class="form-control" required>
+                            <option value="">-- เลือกประเภท --</option>
+                            <option value="Solar Panel">Solar Panel</option>
+                            <option value="Inverter">Inverter</option>
+                            <option value="Battery">Battery</option>
+                            <option value="Charge Controller">Charge Controller</option>
+                            <option value="Mounting Structure">Mounting Structure</option>
+                            <option value="Cable & Connector">Cable & Connector</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="eqBrand">ยี่ห้อ / รุ่น *</label>
+                        <input type="text" id="eqBrand" class="form-control" placeholder="เช่น JinkoSolar" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eqModel">รุ่น (Model)</label>
+                        <input type="text" id="eqModel" class="form-control" placeholder="เช่น JKM-400M">
+                    </div>
+                    <div class="form-group">
+                        <label for="eqSerial">Serial Number *</label>
+                        <input type="text" id="eqSerial" class="form-control" placeholder="หมายเลขเครื่อง" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="eqPurchaseDate">วันที่ซื้อ</label>
+                    <input type="date" id="eqPurchaseDate" class="form-control">
+                </div>
+            </div>
+
+            <!-- ข้อมูลการรับประกัน -->
+            <div class="detail-section">
+                <h3>🛡️ ข้อมูลการรับประกัน</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="warNumber">เลขที่ใบรับประกัน</label>
+                        <input type="text" id="warNumber" class="form-control" placeholder="WRT-XXXXX">
+                    </div>
+                    <div class="form-group">
+                        <label for="warPeriod">ระยะเวลารับประกัน</label>
+                        <input type="text" id="warPeriod" class="form-control" placeholder="เช่น 10 ปี">
+                    </div>
+                </div>
+            </div>
+
+            <!-- รายละเอียดปัญหา -->
+            <div class="detail-section">
+                <h3>⚠️ รายละเอียดปัญหา</h3>
+                <div class="form-group">
+                    <label for="probDesc">คำอธิบายปัญหา *</label>
+                    <textarea id="probDesc" class="form-control" rows="4" placeholder="อธิบายปัญหาที่พบอย่างละเอียด..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="probSeverity">ระดับความรุนแรง *</label>
+                    <select id="probSeverity" class="form-control" required>
+                        <option value="">-- เลือกระดับ --</option>
+                        <option value="low">🟢 ต่ำ - ยังใช้งานได้</option>
+                        <option value="medium">🟡 ปานกลาง - ใช้งานได้บางส่วน</option>
+                        <option value="high">🟠 สูง - ใช้งานไม่ได้เป็นส่วนใหญ่</option>
+                        <option value="critical">🔴 วิกฤต - ใช้งานไม่ได้ / อันตราย</option>
+                    </select>
+                </div>
+                <!-- Image Upload -->
+                <div class="form-group">
+                    <label>📷 แนบรูปภาพ (สูงสุด 5 รูป)</label>
+                    <div class="upload-zone" id="uploadZone">
+                        <input type="file" id="imageInput" multiple accept="image/*" style="display:none;">
+                        <div class="upload-placeholder" id="uploadPlaceholder">
+                            <svg width="48" height="48" fill="none" stroke="var(--text-muted)" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                            </svg>
+                            <p style="margin-top:8px;color:var(--text-muted);font-size:0.9rem;">ลากไฟล์มาวางที่นี่ หรือ <span style="color:var(--primary);cursor:pointer;text-decoration:underline;">เลือกไฟล์</span></p>
+                            <p style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;">รองรับ JPG, PNG, WEBP (สูงสุด 5MB ต่อรูป)</p>
+                        </div>
+                        <div class="upload-preview" id="uploadPreview"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:1rem;border-top:1px solid var(--glass-border);">
+                <a href="/dashboard" class="btn btn-ghost">ยกเลิก</a>
+                <button type="submit" class="btn btn-primary">📤 ส่งเรื่องเคลม</button>
+            </div>
+        </form>
+    </main>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script src="/js/claim-form.js"></script>
+</body>
+</html>

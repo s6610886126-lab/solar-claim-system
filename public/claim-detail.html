@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Claim - รายละเอียดเคลม</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <a href="/dashboard" class="logo">
+            <svg viewBox="0 0 32 32" width="32" height="32"><circle cx="16" cy="16" r="6" fill="#F59E0B"/><g stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"><line x1="16" y1="1" x2="16" y2="6"/><line x1="16" y1="26" x2="16" y2="31"/><line x1="1" y1="16" x2="6" y2="16"/><line x1="26" y1="16" x2="31" y2="16"/><line x1="5.4" y1="5.4" x2="8.9" y2="8.9"/><line x1="23.1" y1="23.1" x2="26.6" y2="26.6"/><line x1="5.4" y1="26.6" x2="8.9" y2="23.1"/><line x1="23.1" y1="8.9" x2="26.6" y2="5.4"/></g></svg>
+            Solar Claim
+        </a>
+        <nav>
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/claim-form">📝 แจ้งเคลม</a>
+        </nav>
+        <div class="user-info">
+            <span style="font-size:0.85rem;color:var(--text-secondary)">Admin</span>
+            <div class="avatar">A</div>
+            <a href="/" class="btn btn-ghost btn-sm" style="margin-left:4px;" title="ออกจากระบบ">🚪 ออก</a>
+        </div>
+    </header>
+
+    <main class="page-container">
+        <div class="page-header animate-in">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                <a href="/dashboard" class="btn btn-ghost btn-sm">← กลับ</a>
+                <h1 id="claimTitle">รายละเอียดเคลม</h1>
+            </div>
+            <p id="claimSubtitle"></p>
+        </div>
+
+        <div class="detail-grid">
+            <!-- Left Column -->
+            <div>
+                <!-- Status & Actions -->
+                <div class="card animate-in" style="margin-bottom:1.5rem;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <span style="color:var(--text-muted);font-size:0.85rem;">สถานะปัจจุบัน</span>
+                            <div style="margin-top:4px;" id="currentStatus"></div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="actionButtons"></div>
+                    </div>
+                </div>
+
+                <!-- Customer Info -->
+                <div class="card animate-in animate-delay-1" style="margin-bottom:1.5rem;">
+                    <div class="detail-section">
+                        <h3>👤 ข้อมูลลูกค้า</h3>
+                        <div id="customerInfo"></div>
+                    </div>
+                </div>
+
+                <!-- Equipment Info -->
+                <div class="card animate-in animate-delay-2" style="margin-bottom:1.5rem;">
+                    <div class="detail-section">
+                        <h3>🔧 ข้อมูลอุปกรณ์</h3>
+                        <div id="equipmentInfo"></div>
+                    </div>
+                </div>
+
+                <!-- Warranty Info -->
+                <div class="card animate-in animate-delay-3" style="margin-bottom:1.5rem;">
+                    <div class="detail-section">
+                        <h3>🛡️ การรับประกัน</h3>
+                        <div id="warrantyInfo"></div>
+                    </div>
+                </div>
+
+                <!-- Problem Info -->
+                <div class="card animate-in animate-delay-4" style="margin-bottom:1.5rem;">
+                    <div class="detail-section">
+                        <h3>⚠️ รายละเอียดปัญหา</h3>
+                        <div id="problemInfo"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div>
+                <!-- Timeline -->
+                <div class="card animate-in animate-delay-2" style="margin-bottom:1.5rem;">
+                    <div class="detail-section">
+                        <h3>📅 ประวัติสถานะ</h3>
+                        <div class="timeline" id="timeline"></div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="card animate-in animate-delay-3">
+                    <div class="detail-section">
+                        <h3>📝 หมายเหตุ</h3>
+                        <div id="notesList"></div>
+                        <div style="margin-top:1rem;">
+                            <textarea id="newNote" class="form-control" rows="3" placeholder="เพิ่มหมายเหตุ..."></textarea>
+                            <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="addNote()">💬 เพิ่มหมายเหตุ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Status Modal -->
+    <div class="modal-overlay" id="statusModal">
+        <div class="modal">
+            <h3 id="modalTitle">เปลี่ยนสถานะ</h3>
+            <input type="hidden" id="modalNewStatus">
+            <div class="form-group">
+                <label>หมายเหตุ</label>
+                <textarea class="form-control" id="modalNote" rows="3" placeholder="หมายเหตุ (ไม่บังคับ)"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
+                <button class="btn btn-primary" onclick="confirmStatusChange()">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script src="/js/claim-detail.js"></script>
+</body>
+</html>
