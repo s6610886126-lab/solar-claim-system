@@ -1,5 +1,6 @@
 // === Claim Form JS ===
 let uploadedImages = [];
+const DRAFT_KEY = 'solar_claim_draft';
 
 // === Session Management ===
 const currentUser = JSON.parse(localStorage.getItem('solar_user'));
@@ -15,12 +16,85 @@ function showToast(msg, type='success') {
 }
 
 // Auto-fill customer info
-if (currentUser.role === 'customer') {
-    document.getElementById('custName').value = currentUser.name;
-    document.getElementById('custEmail').value = currentUser.email;
-    // Optionally make them readonly for customers
-    document.getElementById('custEmail').readOnly = true;
+function autoFill() {
+    if (currentUser.role === 'customer') {
+        if (currentUser.name) document.getElementById('custName').value = currentUser.name;
+        if (currentUser.email) document.getElementById('custEmail').value = currentUser.email;
+        if (currentUser.phone) document.getElementById('custPhone').value = currentUser.phone;
+        
+        // Optionally make them readonly for customers
+        document.getElementById('custEmail').readOnly = true;
+    }
 }
+
+// === Draft Management ===
+function saveDraft() {
+    const draft = {
+        customer: {
+            name: document.getElementById('custName').value,
+            phone: document.getElementById('custPhone').value,
+            email: document.getElementById('custEmail').value,
+            address: document.getElementById('custAddress').value
+        },
+        equipment: {
+            type: document.getElementById('eqType').value,
+            brand: document.getElementById('eqBrand').value,
+            model: document.getElementById('eqModel').value,
+            serialNumber: document.getElementById('eqSerial').value,
+            purchaseDate: document.getElementById('eqPurchaseDate').value
+        },
+        warranty: {
+            number: document.getElementById('warNumber').value,
+            period: document.getElementById('warPeriod').value
+        },
+        problem: {
+            description: document.getElementById('probDesc').value,
+            severity: document.getElementById('probSeverity').value
+        }
+    };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+}
+
+function loadDraft() {
+    const draftJson = localStorage.getItem(DRAFT_KEY);
+    if (!draftJson) return;
+
+    try {
+        const draft = JSON.parse(draftJson);
+        // Customer
+        if (draft.customer.name && !document.getElementById('custName').value) document.getElementById('custName').value = draft.customer.name;
+        if (draft.customer.phone && !document.getElementById('custPhone').value) document.getElementById('custPhone').value = draft.customer.phone;
+        if (draft.customer.email && !document.getElementById('custEmail').value) document.getElementById('custEmail').value = draft.customer.email;
+        if (draft.customer.address) document.getElementById('custAddress').value = draft.customer.address;
+
+        // Equipment
+        if (draft.equipment.type) document.getElementById('eqType').value = draft.equipment.type;
+        if (draft.equipment.brand) document.getElementById('eqBrand').value = draft.equipment.brand;
+        if (draft.equipment.model) document.getElementById('eqModel').value = draft.equipment.model;
+        if (draft.equipment.serialNumber) document.getElementById('eqSerial').value = draft.equipment.serialNumber;
+        if (draft.equipment.purchaseDate) document.getElementById('eqPurchaseDate').value = draft.equipment.purchaseDate;
+
+        // Warranty
+        if (draft.warranty.number) document.getElementById('warNumber').value = draft.warranty.number;
+        if (draft.warranty.period) document.getElementById('warPeriod').value = draft.warranty.period;
+
+        // Problem
+        if (draft.problem.description) document.getElementById('probDesc').value = draft.problem.description;
+        if (draft.problem.severity) document.getElementById('probSeverity').value = draft.problem.severity;
+    } catch (e) {
+        console.error('Failed to load draft', e);
+    }
+}
+
+// Initial setup
+autoFill();
+loadDraft();
+
+// Listen for changes to save draft
+const formInputs = document.querySelectorAll('#claimForm input, #claimForm select, #claimForm textarea');
+formInputs.forEach(input => {
+    input.addEventListener('input', saveDraft);
+});
 
 // === Image Upload ===
 const uploadZone = document.getElementById('uploadZone');
@@ -129,6 +203,8 @@ document.getElementById('claimForm').addEventListener('submit', async function(e
 
         if (res.ok) {
             const { data } = await res.json();
+            // Clear draft on success
+            localStorage.removeItem(DRAFT_KEY);
             showToast(`แจ้งเคลมสำเร็จ! เลขที่: ${data.claimNumber}`);
             setTimeout(() => { window.location.href = `/claim-detail?id=${data.id}`; }, 1500);
         } else {
@@ -138,3 +214,4 @@ document.getElementById('claimForm').addEventListener('submit', async function(e
         showToast('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
     }
 });
+

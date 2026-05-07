@@ -253,12 +253,12 @@ app.post('/api/login', (req, res) => {
     // Check registered users first
     const user = data.users.find(u => (u.email.toLowerCase() === username.toLowerCase() || u.name === username) && u.password === password);
     if (user) {
-        return res.json({ success: true, user: { name: user.name, email: user.email, role: user.role } });
+        return res.json({ success: true, user: { name: user.name, email: user.email, phone: user.phone, role: user.role } });
     }
 
     // Simple demo logic fallback
     if (username === 'admin' && password === 'admin') {
-        return res.json({ success: true, user: { name: 'System Admin', email: 'admin@solar.com', role: 'admin' } });
+        return res.json({ success: true, user: { name: 'System Admin', email: 'admin@solar.com', phone: '02-123-4567', role: 'admin' } });
     }
     // If it looks like an email, treat as customer (demo mode fallback)
     if (username.includes('@')) {
@@ -270,7 +270,8 @@ app.post('/api/login', (req, res) => {
 
         const customerClaim = data.claims.find(c => c.customer.email.toLowerCase() === username.toLowerCase());
         const customerName = customerClaim ? customerClaim.customer.name : 'Customer';
-        return res.json({ success: true, user: { name: customerName, email: username, role: 'customer' } });
+        const customerPhone = customerClaim ? customerClaim.customer.phone : '08x-xxx-xxxx';
+        return res.json({ success: true, user: { name: customerName, email: username, phone: customerPhone, role: 'customer' } });
     }
     res.status(401).json({ success: false, message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
 });
