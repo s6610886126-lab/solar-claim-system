@@ -28,7 +28,7 @@ const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', 
 // --- Helper: Upload Base64 Images to Supabase Storage ---
 async function uploadImagesToSupabase(base64Images) {
     if (!base64Images || !Array.isArray(base64Images) || base64Images.length === 0) return [];
-    
+
     const uploadedUrls = [];
     for (const base64Str of base64Images) {
         // If it's already a URL, keep it
@@ -68,7 +68,7 @@ async function uploadImagesToSupabase(base64Images) {
 // --- Data Migration ---
 async function migrateData() {
     if (!fs.existsSync(DATA_FILE) || !supabaseUrl || supabaseUrl.includes('YOUR_SUPABASE')) return;
-    
+
     try {
         const { count: userCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
         const { count: claimCount } = await supabase.from('claims').select('*', { count: 'exact', head: true });
@@ -76,7 +76,7 @@ async function migrateData() {
         if (userCount === 0 || claimCount === 0) {
             console.log('🔄 Starting data migration from JSON to Supabase...');
             const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-            
+
             if (data.users && data.users.length > 0) {
                 const usersToInsert = data.users.map(u => ({
                     id: u.id, name: u.name, email: u.email, phone: u.phone, password: u.password, role: u.role, created_at: u.createdAt
@@ -126,8 +126,8 @@ function formatClaim(c) {
 }
 
 // === SYNC TO EXCEL ===
-const statusLabelsExcel = { pending:'รอดำเนินการ', reviewing:'กำลังตรวจสอบ', approved:'อนุมัติแล้ว', rejected:'ไม่อนุมัติ', completed:'เสร็จสิ้น' };
-const sevLabelsExcel = { low:'ต่ำ', medium:'ปานกลาง', high:'สูง', critical:'วิกฤต' };
+const statusLabelsExcel = { pending: 'รอดำเนินการ', reviewing: 'กำลังตรวจสอบ', approved: 'อนุมัติแล้ว', rejected: 'ไม่อนุมัติ', completed: 'เสร็จสิ้น' };
+const sevLabelsExcel = { low: 'ต่ำ', medium: 'ปานกลาง', high: 'สูง', critical: 'วิกฤต' };
 
 async function syncToExcel(claimsData) {
     const claims = claimsData.map(formatClaim);
@@ -152,45 +152,45 @@ async function syncToExcel(claimsData) {
     ws.getRow(1).eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; cell.font = { color: { argb: 'FFF59E0B' }, bold: true, size: 11 }; cell.alignment = { vertical: 'middle', horizontal: 'center' }; cell.border = { bottom: { style: 'medium', color: { argb: 'FFF59E0B' } } }; });
     ws.getRow(1).height = 28;
 
-    const statusColors = { pending:'FFFBBF24', reviewing:'FF3B82F6', approved:'FF10B981', rejected:'FFEF4444', completed:'FF8B5CF6' };
+    const statusColors = { pending: 'FFFBBF24', reviewing: 'FF3B82F6', approved: 'FF10B981', rejected: 'FFEF4444', completed: 'FF8B5CF6' };
     claims.forEach(c => {
         const row = ws.addRow({ claimNumber: c.claimNumber, customerName: c.customer?.name || '', phone: c.customer?.phone || '', email: c.customer?.email || '', address: c.customer?.address || '', eqType: c.equipment?.type || '', brand: c.equipment?.brand || '', model: c.equipment?.model || '', serial: c.equipment?.serialNumber || '', purchaseDate: c.equipment?.purchaseDate || '', warranty: c.warranty?.number || '', warPeriod: c.warranty?.period || '', warExpiry: c.warranty?.expiryDate || '', problem: c.problem?.description || '', severity: sevLabelsExcel[c.problem?.severity] || c.problem?.severity || '', status: statusLabelsExcel[c.status] || c.status, createdAt: new Date(c.createdAt).toLocaleString('th-TH'), updatedAt: new Date(c.updatedAt).toLocaleString('th-TH'), imageCount: c.problem?.images?.length || 0 });
         const statusCell = row.getCell('status'); const sColor = statusColors[c.status]; if (sColor) { statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sColor } }; statusCell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; } statusCell.alignment = { horizontal: 'center' };
-        const sevCell = row.getCell('severity'); const sevColors = { low:'FF10B981', medium:'FFFBBF24', high:'FFF97316', critical:'FFEF4444' }; const sc = sevColors[c.problem?.severity]; if (sc) { sevCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sc } }; sevCell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; } sevCell.alignment = { horizontal: 'center' };
+        const sevCell = row.getCell('severity'); const sevColors = { low: 'FF10B981', medium: 'FFFBBF24', high: 'FFF97316', critical: 'FFEF4444' }; const sc = sevColors[c.problem?.severity]; if (sc) { sevCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sc } }; sevCell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; } sevCell.alignment = { horizontal: 'center' };
         row.alignment = { vertical: 'middle', wrapText: true };
     });
     ws.autoFilter = { from: 'A1', to: `S${claims.length + 1}` };
 
     const ws2 = wb.addWorksheet('สรุป', { properties: { tabColor: { argb: 'FF10B981' } } });
-    ws2.columns = [ { header: 'รายการ', key: 'label', width: 25 }, { header: 'จำนวน', key: 'count', width: 12 } ];
+    ws2.columns = [{ header: 'รายการ', key: 'label', width: 25 }, { header: 'จำนวน', key: 'count', width: 12 }];
     ws2.getRow(1).eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; cell.font = { color: { argb: 'FFF59E0B' }, bold: true, size: 11 }; cell.alignment = { vertical: 'middle', horizontal: 'center' }; });
 
     ws2.addRow({ label: 'เคลมทั้งหมด', count: claims.length });
-    ws2.addRow({ label: 'รอดำเนินการ', count: claims.filter(c=>c.status==='pending').length });
-    ws2.addRow({ label: 'กำลังตรวจสอบ', count: claims.filter(c=>c.status==='reviewing').length });
-    ws2.addRow({ label: 'อนุมัติแล้ว', count: claims.filter(c=>c.status==='approved').length });
-    ws2.addRow({ label: 'ไม่อนุมัติ', count: claims.filter(c=>c.status==='rejected').length });
-    ws2.addRow({ label: 'เสร็จสิ้น', count: claims.filter(c=>c.status==='completed').length });
+    ws2.addRow({ label: 'รอดำเนินการ', count: claims.filter(c => c.status === 'pending').length });
+    ws2.addRow({ label: 'กำลังตรวจสอบ', count: claims.filter(c => c.status === 'reviewing').length });
+    ws2.addRow({ label: 'อนุมัติแล้ว', count: claims.filter(c => c.status === 'approved').length });
+    ws2.addRow({ label: 'ไม่อนุมัติ', count: claims.filter(c => c.status === 'rejected').length });
+    ws2.addRow({ label: 'เสร็จสิ้น', count: claims.filter(c => c.status === 'completed').length });
     ws2.addRow({});
     ws2.addRow({ label: '--- ตามประเภทอุปกรณ์ ---', count: '' });
-    const eqCount = {}; claims.forEach(c => { eqCount[c.equipment?.type||'อื่นๆ'] = (eqCount[c.equipment?.type||'อื่นๆ']||0)+1; });
-    Object.entries(eqCount).forEach(([k,v]) => ws2.addRow({ label: k, count: v }));
+    const eqCount = {}; claims.forEach(c => { eqCount[c.equipment?.type || 'อื่นๆ'] = (eqCount[c.equipment?.type || 'อื่นๆ'] || 0) + 1; });
+    Object.entries(eqCount).forEach(([k, v]) => ws2.addRow({ label: k, count: v }));
 
-    try { await wb.xlsx.writeFile(EXCEL_FILE); console.log(`📊 Excel synced: ${EXCEL_FILE}`); } 
+    try { await wb.xlsx.writeFile(EXCEL_FILE); console.log(`📊 Excel synced: ${EXCEL_FILE}`); }
     catch (err) { if (err.code === 'EBUSY') console.log('⚠️ Excel file is open — will sync next time'); else throw err; }
 }
 
 // === API ===
 app.post('/api/register', async (req, res) => {
     const { name, email, phone, password } = req.body;
-    
+
     // Using simple ILIKE for case-insensitive email check
     const { data: existingUser } = await supabase.from('users').select('*').ilike('email', email).single();
     if (existingUser) return res.status(400).json({ success: false, message: 'อีเมลนี้ถูกใช้งานแล้ว' });
 
     const { error } = await supabase.from('users').insert([{ id: uuidv4(), name, email, phone, password, role: 'customer' }]);
     if (error) return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์' });
-    
+
     res.status(201).json({ success: true, message: 'ลงทะเบียนสำเร็จ' });
 });
 
@@ -215,7 +215,7 @@ app.post('/api/login', async (req, res) => {
             .select('customer')
             .filter('customer->>email', 'ilike', username)
             .limit(1);
-            
+
         if (customerClaims && customerClaims.length > 0) {
             const cust = customerClaims[0].customer;
             return res.json({ success: true, user: { name: cust.name, email: username, phone: cust.phone, role: 'customer' } });
@@ -238,7 +238,7 @@ app.get('/api/claims', async (req, res) => {
 
     const { data: claims, error } = await query;
     if (error) return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการดึงข้อมูล', error });
-    
+
     const formattedData = claims.map(formatClaim);
     res.json({ success: true, data: formattedData, total: formattedData.length });
 });
@@ -274,7 +274,7 @@ app.post('/api/claims', async (req, res) => {
         timeline: [{ status: 'pending', date: new Date().toISOString(), note: 'รับเรื่องเคลมเข้าระบบ' }],
         notes: []
     };
-    
+
     const { data, error } = await supabase.from('claims').insert([newClaim]).select().single();
     if (error) return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', error });
     res.status(201).json({ success: true, data: formatClaim(data) });
@@ -354,7 +354,7 @@ app.get('/api/stats', async (req, res) => {
 
         const { data: rawClaims, error } = await query;
         if (error) throw error;
-        
+
         const claims = rawClaims.map(formatClaim);
 
         const s = {
@@ -393,7 +393,7 @@ app.get('/api/export/excel', async (req, res) => {
     try {
         const { data: rawClaims, error } = await supabase.from('claims').select('*').order('created_at', { ascending: false });
         if (error) throw error;
-        
+
         await syncToExcel(rawClaims);
 
         const filename = 'solar-claims.xlsx';
