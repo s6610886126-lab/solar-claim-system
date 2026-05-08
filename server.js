@@ -195,7 +195,12 @@ app.post('/api/register', async (req, res) => {
 });
 
 app.post('/api/login', async (req, res) => {
-    const { username, password } = req.body;
+    let { username, password } = req.body;
+    
+    // Trim whitespace to prevent login issues
+    if (username) username = username.trim();
+    if (password) password = password.trim();
+
     const { data: user } = await supabase.from('users')
         .select('*')
         .or(`email.ilike.${username},name.eq.${username}`)
