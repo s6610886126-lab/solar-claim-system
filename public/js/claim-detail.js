@@ -3,9 +3,20 @@ const statusLabels = { pending:'รอดำเนินการ', reviewing:'�
 const sevLabels = { low:'🟢 ต่ำ', medium:'🟡 ปานกลาง', high:'🟠 สูง', critical:'🔴 วิกฤต' };
 let currentClaim = null;
 
-// === Session Management ===
 const currentUser = JSON.parse(localStorage.getItem('solar_user'));
 if (!currentUser) { window.location.href = '/'; }
+
+function initNavbar() {
+    if (document.getElementById('userName')) document.getElementById('userName').textContent = currentUser.name;
+    if (document.getElementById('userRole')) document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Customer';
+    if (document.getElementById('userAvatar')) document.getElementById('userAvatar').innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.email || currentUser.name)}&backgroundColor=b6e3f4" class="avatar-img" alt="Avatar">`;
+}
+initNavbar();
+
+function logout() {
+    localStorage.removeItem('solar_user');
+    window.location.href = '/';
+}
 
 function showToast(msg, type='success') {
     const c = document.getElementById('toastContainer');
@@ -118,8 +129,11 @@ function renderNotes(notes) {
     if (!notes.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">ยังไม่มีหมายเหตุ</p>'; return; }
     el.innerHTML = notes.map(n => `
         <div class="note-item">
-            <div class="note-header"><span class="note-author">${n.author}</span><span class="note-date">${formatDate(n.createdAt)}</span></div>
-            <div class="note-text">${n.text}</div>
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(n.author)}&backgroundColor=b6e3f4" class="note-avatar" alt="Avatar">
+            <div class="note-content">
+                <div class="note-header"><span class="note-author">${n.author}</span><span class="note-date">${formatDate(n.createdAt)}</span></div>
+                <div class="note-text">${n.text}</div>
+            </div>
         </div>
     `).join('');
 }

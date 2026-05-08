@@ -2,3 +2,4 @@ node_modules/
 data/
 *.xlsx
 test-excel.js
+.env

@@ -31,7 +31,7 @@ function logout() {
 function initDashboard() {
     document.getElementById('userName').textContent = currentUser.name;
     document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Customer';
-    document.getElementById('userAvatar').textContent = currentUser.name.charAt(0);
+    document.getElementById('userAvatar').innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.email || currentUser.name)}&backgroundColor=b6e3f4" class="avatar-img" alt="Avatar">`;
 
     if (currentUser.role !== 'admin') {
         // Hide admin-only sections

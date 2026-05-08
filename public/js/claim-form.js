@@ -6,6 +6,18 @@ const DRAFT_KEY = 'solar_claim_draft';
 const currentUser = JSON.parse(localStorage.getItem('solar_user'));
 if (!currentUser) { window.location.href = '/'; }
 
+function initNavbar() {
+    if (document.getElementById('userName')) document.getElementById('userName').textContent = currentUser.name;
+    if (document.getElementById('userRole')) document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Customer';
+    if (document.getElementById('userAvatar')) document.getElementById('userAvatar').innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.email || currentUser.name)}&backgroundColor=b6e3f4" class="avatar-img" alt="Avatar">`;
+}
+initNavbar();
+
+function logout() {
+    localStorage.removeItem('solar_user');
+    window.location.href = '/';
+}
+
 function showToast(msg, type='success') {
     const c = document.getElementById('toastContainer');
     const t = document.createElement('div');

@@ -17,9 +17,12 @@
             <a href="/claim-form" class="active">📝 แจ้งเคลม</a>
         </nav>
         <div class="user-info">
-            <span style="font-size:0.85rem;color:var(--text-secondary)">Admin</span>
-            <div class="avatar">A</div>
-            <a href="/" class="btn btn-ghost btn-sm" style="margin-left:4px;" title="ออกจากระบบ">🚪 ออก</a>
+            <div style="text-align: right; margin-right: 10px;">
+                <div id="userName" style="font-weight: 600; font-size: 0.9rem;">Admin</div>
+                <div id="userRole" style="font-size: 0.75rem; color: var(--text-secondary)">Administrator</div>
+            </div>
+            <div class="avatar" id="userAvatar">A</div>
+            <button onclick="logout()" class="btn btn-ghost btn-sm" style="margin-left:4px;" title="ออกจากระบบ">🚪 ออก</button>
         </div>
     </header>
 
