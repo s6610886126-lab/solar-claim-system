@@ -1,5 +1,5 @@
 node_modules/
-data/
-*.xlsx
-test-excel.js
 .env
+data/
+*.log
+.DS_Store
