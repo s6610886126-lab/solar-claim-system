@@ -127,7 +127,7 @@ function formatClaim(c) {
 
 // === SYNC TO EXCEL ===
 const statusLabelsExcel = { pending: 'รอดำเนินการ', reviewing: 'กำลังตรวจสอบ', approved: 'อนุมัติแล้ว', rejected: 'ไม่อนุมัติ', completed: 'เสร็จสิ้น' };
-const sevLabelsExcel = { low: 'ต่ำ', medium: 'ปานกลาง', high: 'สูง', critical: 'วิกฤต' };
+const sevLabelsExcel = { 10: '10%', 50: '50%', 80: '80%', 100: '100%' };
 
 async function syncToExcel(claimsData) {
     const claims = claimsData.map(formatClaim);
@@ -156,7 +156,7 @@ async function syncToExcel(claimsData) {
     claims.forEach(c => {
         const row = ws.addRow({ claimNumber: c.claimNumber, customerName: c.customer?.name || '', phone: c.customer?.phone || '', email: c.customer?.email || '', address: c.customer?.address || '', eqType: c.equipment?.type || '', brand: c.equipment?.brand || '', model: c.equipment?.model || '', serial: c.equipment?.serialNumber || '', purchaseDate: c.equipment?.purchaseDate || '', warranty: c.warranty?.number || '', warPeriod: c.warranty?.period || '', warExpiry: c.warranty?.expiryDate || '', problem: c.problem?.description || '', severity: sevLabelsExcel[c.problem?.severity] || c.problem?.severity || '', status: statusLabelsExcel[c.status] || c.status, createdAt: new Date(c.createdAt).toLocaleString('th-TH'), updatedAt: new Date(c.updatedAt).toLocaleString('th-TH'), imageCount: c.problem?.images?.length || 0 });
         const statusCell = row.getCell('status'); const sColor = statusColors[c.status]; if (sColor) { statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sColor } }; statusCell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; } statusCell.alignment = { horizontal: 'center' };
-        const sevCell = row.getCell('severity'); const sevColors = { low: 'FF10B981', medium: 'FFFBBF24', high: 'FFF97316', critical: 'FFEF4444' }; const sc = sevColors[c.problem?.severity]; if (sc) { sevCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sc } }; sevCell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; } sevCell.alignment = { horizontal: 'center' };
+        const sevCell = row.getCell('severity'); const sevColors = { 10: 'FF10B981', 50: 'FFFBBF24', 80: 'FFF97316', 100: 'FFEF4444' }; const sc = sevColors[c.problem?.severity]; if (sc) { sevCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sc } }; sevCell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; } sevCell.alignment = { horizontal: 'center' };
         row.alignment = { vertical: 'middle', wrapText: true };
     });
     ws.autoFilter = { from: 'A1', to: `S${claims.length + 1}` };

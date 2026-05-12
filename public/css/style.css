@@ -139,10 +139,10 @@ tbody tr:hover { background:rgba(59,130,246,0.04); }
 
 /* === SEVERITY === */
 .severity { padding:3px 10px; border-radius:4px; font-size:0.75rem; font-weight:600; }
-.severity-low { background:rgba(16,185,129,0.15); color:var(--success); }
-.severity-medium { background:rgba(251,191,36,0.15); color:var(--warning); }
-.severity-high { background:rgba(96,165,250,0.15); color:var(--secondary); }
-.severity-critical { background:rgba(239,68,68,0.15); color:var(--danger); }
+.severity-low, .severity-10 { background:rgba(16,185,129,0.15); color:var(--success); }
+.severity-medium, .severity-50 { background:rgba(251,191,36,0.15); color:var(--warning); }
+.severity-high, .severity-80 { background:rgba(96,165,250,0.15); color:var(--secondary); }
+.severity-critical, .severity-100 { background:rgba(239,68,68,0.15); color:var(--danger); }
 
 /* === FORMS === */
 .form-group { margin-bottom:1.25rem; }

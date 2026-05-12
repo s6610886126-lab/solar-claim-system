@@ -1,6 +1,6 @@
 // === Claim Detail JS ===
 const statusLabels = { pending:'รอดำเนินการ', reviewing:'กำลังตรวจสอบ', approved:'อนุมัติแล้ว', rejected:'ไม่อนุมัติ', completed:'เสร็จสิ้น' };
-const sevLabels = { low:'🟢 ต่ำ', medium:'🟡 ปานกลาง', high:'🟠 สูง', critical:'🔴 วิกฤต' };
+const sevLabels = { low:'🟢 ต่ำ', medium:'🟡 ปานกลาง', high:'🟠 สูง', critical:'🔴 วิกฤต', 10: '1-10% - ใช้งานได้ปกติ', 50: '11-50% - ใช้งานได้บางส่วน', 80: '51-80% - ใช้งานไม่ได้เป็นส่วนใหญ่', 100: '81-100% - ใช้งานไม่ได้ / อันตราย' };
 let currentClaim = null;
 
 const currentUser = JSON.parse(localStorage.getItem('solar_user'));
@@ -92,7 +92,7 @@ function renderClaim(c) {
         detailRow('หมดอายุ', c.warranty.expiryDate);
 
     // Problem
-    let problemHtml = detailRow('ความรุนแรง', `<span class="severity severity-${c.problem.severity}">${sevLabels[c.problem.severity]}</span>`) +
+    let problemHtml = detailRow('เปอร์เซ็นความเสียหาย', `<span class="severity severity-${c.problem.severity}">${sevLabels[c.problem.severity] || c.problem.severity}</span>`) +
         `<div style="margin-top:0.75rem;"><div class="detail-label" style="margin-bottom:4px;">คำอธิบายปัญหา</div><p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">${c.problem.description}</p></div>`;
 
     // Images

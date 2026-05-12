@@ -1,6 +1,6 @@
 // === Dashboard JS ===
 const statusLabels = { pending:'รอดำเนินการ', reviewing:'กำลังตรวจสอบ', approved:'อนุมัติแล้ว', rejected:'ไม่อนุมัติ', completed:'เสร็จสิ้น' };
-const sevLabels = { low:'ต่ำ', medium:'ปานกลาง', high:'สูง', critical:'วิกฤต' };
+const sevLabels = { low:'ต่ำ', medium:'ปานกลาง', high:'สูง', critical:'วิกฤต', 10:'1-10%', 50:'11-50%', 80:'51-80%', 100:'81-100%' };
 
 function showToast(msg, type='success') {
     const c = document.getElementById('toastContainer');
