@@ -3,174 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solar Claim - Dashboard</title>
+    <title>SolarCare - Dashboard</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <!-- NAVBAR -->
     <header class="navbar">
         <a href="/dashboard" class="logo">
-            <svg viewBox="0 0 32 32" width="32" height="32"><circle cx="16" cy="16" r="6" fill="#F59E0B"/><g stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"><line x1="16" y1="1" x2="16" y2="6"/><line x1="16" y1="26" x2="16" y2="31"/><line x1="1" y1="16" x2="6" y2="16"/><line x1="26" y1="16" x2="31" y2="16"/><line x1="5.4" y1="5.4" x2="8.9" y2="8.9"/><line x1="23.1" y1="23.1" x2="26.6" y2="26.6"/><line x1="5.4" y1="26.6" x2="8.9" y2="23.1"/><line x1="23.1" y1="8.9" x2="26.6" y2="5.4"/></g></svg>
-            Solar Claim
+            <svg viewBox="0 0 32 32" width="28" height="28">
+                <circle cx="16" cy="16" r="6" fill="#F59E0B"/>
+                <g stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="16" y1="1" x2="16" y2="6"/>
+                    <line x1="16" y1="26" x2="16" y2="31"/>
+                    <line x1="1" y1="16" x2="6" y2="16"/>
+                    <line x1="26" y1="16" x2="31" y2="16"/>
+                    <line x1="5.4" y1="5.4" x2="8.9" y2="8.9"/>
+                    <line x1="23.1" y1="23.1" x2="26.6" y2="26.6"/>
+                    <line x1="5.4" y1="26.6" x2="8.9" y2="23.1"/>
+                    <line x1="23.1" y1="8.9" x2="26.6" y2="5.4"/>
+                </g>
+            </svg>
+            Solar<span>Care</span>
         </a>
         <nav>
-            <a href="/dashboard" class="active">📊 Dashboard</a>
-            <a href="/claim-form">📝 แจ้งเคลม</a>
+            <a href="/dashboard" class="active">หน้าหลัก</a>
+            <a href="/claim-form">แจ้งเคลม</a>
+            <a href="/track-claim">ติดตามสถานะ</a>
+            <a href="/overview">ภาพรวม</a>
+            <a href="/import-export">นำเข้า/ส่งออก</a>
         </nav>
         <div class="user-info">
-            <div style="text-align: right; margin-right: 10px;">
-                <div id="userName" style="font-weight: 600; font-size: 0.9rem;">Admin</div>
-                <div id="userRole" style="font-size: 0.75rem; color: var(--text-secondary)">Administrator</div>
-            </div>
-            <div class="avatar" id="userAvatar">A</div>
-            <button onclick="logout()" class="btn btn-ghost btn-sm" style="margin-left:4px;" title="ออกจากระบบ">🚪 ออก</button>
+            <button class="notify-btn">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
+                </svg>
+                แจ้งเตือน
+            </button>
+            <div class="avatar" id="userAvatar">S</div>
+            <button onclick="logout()" class="btn btn-ghost btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);" title="ออกจากระบบ">🚪 ออก</button>
         </div>
     </header>
 
     <main class="page-container">
-        <!-- Page Header -->
-        <div class="page-header animate-in">
-            <h1>📊 Dashboard</h1>
-            <p>ภาพรวมการเคลมอุปกรณ์โซลาร์เซลล์</p>
-        </div>
-
-        <!-- Stats Cards -->
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card animate-in animate-delay-1">
-                <div class="stat-icon total">📋</div>
-                <div class="stat-value" id="statTotal">0</div>
-                <div class="stat-label">เคลมทั้งหมด</div>
+        <!-- Hero Banner from Mockup -->
+        <div class="hero-banner animate-in">
+            <div class="hero-content-area">
+                <h1 class="hero-title" style="font-size: 2.85rem; font-weight: 900; line-height: 1.22; letter-spacing: -1px;">ระบบจัดการ<br><span style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.2));">เคลมโซล่าเซลล์</span><br>ครบวงจร</h1>
+                <p class="hero-subtitle">แจ้งปัญหา ติดตามสถานะ และรับการแก้ไขอย่างรวดเร็ว ภายใต้การรับประกันมาตรฐาน</p>
+                <div class="hero-actions">
+                    <a href="/claim-form" class="btn-gold">แจ้งเคลมใหม่</a>
+                    <a href="/track-claim" class="btn-outline-white">ติดตามเคลม →</a>
+                </div>
             </div>
-            <div class="stat-card animate-in animate-delay-2">
-                <div class="stat-icon pending">⏳</div>
-                <div class="stat-value" id="statPending">0</div>
-                <div class="stat-label">รอดำเนินการ</div>
-            </div>
-            <div class="stat-card animate-in animate-delay-3">
-                <div class="stat-icon approved">✅</div>
-                <div class="stat-value" id="statApproved">0</div>
-                <div class="stat-label">อนุมัติแล้ว</div>
-            </div>
-            <div class="stat-card animate-in animate-delay-4">
-                <div class="stat-icon rejected">❌</div>
-                <div class="stat-value" id="statRejected">0</div>
-                <div class="stat-label">ไม่อนุมัติ</div>
-            </div>
-        </div>
-
-        <!-- Charts -->
-        <div class="charts-grid" id="chartsSection">
-            <div class="chart-card animate-in">
-                <h3>📈 เคลมรายเดือน (6 เดือนล่าสุด)</h3>
-                <div class="chart-bar-container" id="monthlyChart"></div>
-            </div>
-            <div class="chart-card animate-in">
-                <h3>🔧 ตามประเภทอุปกรณ์</h3>
-                <div id="equipmentChart">
-                    <div class="donut-chart"><canvas id="donutCanvas"></canvas>
-                        <div class="donut-center"><div class="value" id="donutTotal">0</div><div class="label">รายการ</div></div>
-                    </div>
-                    <div class="donut-legend" id="donutLegend"></div>
+            
+            <div class="hero-stats-row" id="statsGrid">
+                <div class="hero-stat-item">
+                    <div class="hero-stat-value" id="statTotal">124</div>
+                    <div class="hero-stat-label">เคสทั้งหมด</div>
+                </div>
+                <div class="hero-stat-item">
+                    <div class="hero-stat-value" id="statSuccess">95%</div>
+                    <div class="hero-stat-label">อัตราความสำเร็จ</div>
+                </div>
+                <div class="hero-stat-item">
+                    <div class="hero-stat-value" id="statAvgTime">3.2 วัน</div>
+                    <div class="hero-stat-label">เวลาเฉลี่ยในการแก้ไข</div>
+                </div>
+                <div class="hero-stat-item">
+                    <div class="hero-stat-value" id="statResponse">24 ชม.</div>
+                    <div class="hero-stat-label">เวลาตอบสนอง</div>
                 </div>
             </div>
         </div>
 
-        <!-- Filters & Table -->
-        <div class="section-header animate-in">
-            <h2 id="tableTitle">📋 รายการเคลมทั้งหมด</h2>
-            <div style="display:flex;gap:8px;">
-                <a href="/api/export/excel" class="btn btn-success btn-sm" id="exportBtn" download>📥 ดาวน์โหลด Excel</a>
-                <a href="/claim-form" class="btn btn-primary btn-sm">+ แจ้งเคลมใหม่</a>
+        <!-- 3 Quick action cards below the Hero -->
+        <div class="quick-cards-grid animate-in animate-delay-1">
+            <div class="quick-card" onclick="window.location.href='/claim-form'">
+                <div class="icon-wrapper">📄</div>
+                <div class="quick-card-text">
+                    <h3>แจ้งเรื่องเคลม</h3>
+                    <p>กรอกแบบฟอร์มออนไลน์ ระบุปัญหาและแนบหลักฐานได้ทันที</p>
+                </div>
             </div>
-        </div>
-
-        <div class="filters-bar animate-in">
-            <div class="search-box">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="searchInput" placeholder="ค้นหา เลขเคลม, ชื่อลูกค้า, ยี่ห้อ...">
+            
+            <div class="quick-card" onclick="window.location.href='/track-claim'">
+                <div class="icon-wrapper">🎯</div>
+                <div class="quick-card-text">
+                    <h3>ติดตามสถานะ</h3>
+                    <p>ตรวจสอบความคืบหน้าของเคลมแบบ real-time ทุกขั้นตอน</p>
+                </div>
             </div>
-            <select class="filter-select" id="filterStatus">
-                <option value="all">สถานะทั้งหมด</option>
-                <option value="pending">รอดำเนินการ</option>
-                <option value="reviewing">กำลังตรวจสอบ</option>
-                <option value="approved">อนุมัติแล้ว</option>
-                <option value="rejected">ไม่อนุมัติ</option>
-                <option value="completed">เสร็จสิ้น</option>
-            </select>
-            <select class="filter-select" id="filterEquipment">
-                <option value="all">อุปกรณ์ทั้งหมด</option>
-                <option value="Solar Panel">Solar Panel</option>
-                <option value="Inverter">Inverter</option>
-                <option value="Battery">Battery</option>
-                <option value="Charge Controller">Charge Controller</option>
-                <option value="Mounting Structure">Mounting Structure</option>
-                <option value="Cable & Connector">Cable & Connector</option>
-            </select>
-        </div>
-
-        <div class="table-container animate-in">
-            <table>
-                <thead>
-                    <tr>
-                        <th>เลขที่เคลม</th>
-                        <th>ลูกค้า</th>
-                        <th>อุปกรณ์</th>
-                        <th>ยี่ห้อ</th>
-                        <th>ความเสียหาย</th>
-                        <th>สถานะ</th>
-                        <th>วันที่แจ้ง</th>
-                        <th>จัดการ</th>
-                    </tr>
-                </thead>
-                <tbody id="claimsTable"></tbody>
-            </table>
-        </div>
-        <div id="emptyState" class="empty-state" style="display:none;">
-            <p>🔍 ไม่พบข้อมูลเคลม</p>
+            
+            <div class="quick-card" onclick="window.location.href='/overview'">
+                <div class="icon-wrapper">🎛️</div>
+                <div class="quick-card-text">
+                    <h3>ภาพรวมสถิติ</h3>
+                    <p>รายงานและกราฟแสดงสรุปเคลมทั้งหมด สำหรับผู้ดูแลระบบ</p>
+                </div>
+            </div>
         </div>
     </main>
 
-    <!-- Status Modal -->
-    <div class="modal-overlay" id="statusModal">
-        <div class="modal">
-            <h3>เปลี่ยนสถานะเคลม</h3>
-            <input type="hidden" id="modalClaimId">
-            <div class="form-group">
-                <label>สถานะใหม่</label>
-                <select class="form-control" id="modalStatus">
-                    <option value="pending">รอดำเนินการ</option>
-                    <option value="reviewing">กำลังตรวจสอบ</option>
-                    <option value="approved">อนุมัติ</option>
-                    <option value="rejected">ไม่อนุมัติ</option>
-                    <option value="completed">เสร็จสิ้น</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>หมายเหตุ</label>
-                <textarea class="form-control" id="modalNote" rows="3" placeholder="หมายเหตุ (ไม่บังคับ)"></textarea>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
-                <button class="btn btn-primary" onclick="updateStatus()">บันทึก</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Confirm Modal -->
-    <div class="modal-overlay" id="deleteModal">
-        <div class="modal">
-            <h3>⚠️ ยืนยันการลบ</h3>
-            <p style="color:var(--text-secondary);margin-bottom:1rem;">ต้องการลบเคลมนี้หรือไม่? การดำเนินการนี้ไม่สามารถยกเลิกได้</p>
-            <input type="hidden" id="deleteClaimId">
-            <div class="modal-actions">
-                <button class="btn btn-ghost" onclick="closeDeleteModal()">ยกเลิก</button>
-                <button class="btn btn-danger" onclick="confirmDelete()">🗑 ลบเคลม</button>
-            </div>
-        </div>
-    </div>
-
     <div class="toast-container" id="toastContainer"></div>
-
     <script src="/js/dashboard.js"></script>
 </body>
 </html>

@@ -119,9 +119,53 @@ function renderClaim(c) {
     renderNotes(c.notes);
 
     // Hide add note for customer if needed (or keep it for communication)
-    if (currentUser.role === 'customer') {
-        document.querySelector('.note-input-section').style.display = 'none';
+    const noteInputSec = document.querySelector('.note-input-section');
+    if (noteInputSec && currentUser.role === 'customer') {
+        noteInputSec.style.display = 'none';
     }
+
+    // Populate Print Area
+    document.getElementById('printClaimNumber').textContent = c.claimNumber;
+    document.getElementById('printClaimDate').textContent = formatDate(c.createdAt);
+    document.getElementById('printClaimStatus').textContent = statusLabels[c.status] || c.status;
+
+    document.getElementById('printCustName').textContent = c.customer.name;
+    document.getElementById('printCustPhone').textContent = c.customer.phone;
+    document.getElementById('printCustEmail').textContent = c.customer.email || '-';
+    document.getElementById('printCustAddress').textContent = c.customer.address;
+
+    document.getElementById('printEqType').textContent = c.equipment.type;
+    document.getElementById('printEqBrandModel').textContent = `${c.equipment.brand} ${c.equipment.model || ''}`;
+    document.getElementById('printEqSerial').textContent = c.equipment.serialNumber;
+    document.getElementById('printEqPurchase').textContent = c.equipment.purchaseDate ? formatDate(c.equipment.purchaseDate) : '-';
+
+    document.getElementById('printWarNum').textContent = c.warranty.number || '-';
+    document.getElementById('printWarExpiry').textContent = c.warranty.expiryDate ? formatDate(c.warranty.expiryDate) : '-';
+    document.getElementById('printWarPeriod').textContent = c.warranty.period || '-';
+
+    // Clear severity icons/emojis for official print
+    const cleanSev = (sevLabels[c.problem.severity] || c.problem.severity)
+        .replace('🟢', '')
+        .replace('🟡', '')
+        .replace('🟠', '')
+        .replace('🔴', '')
+        .trim();
+    document.getElementById('printSeverity').textContent = cleanSev;
+    document.getElementById('printProblemDesc').textContent = c.problem.description;
+
+    const printTimeline = document.getElementById('printTimelineRows');
+    printTimeline.innerHTML = c.timeline.map(t => `
+        <tr>
+            <td>${formatDate(t.date)}</td>
+            <td><strong>${statusLabels[t.status] || t.status}</strong></td>
+            <td>${t.note}</td>
+        </tr>
+    `).join('');
+}
+
+function exportPDF() {
+    document.getElementById('printPrintedAt').textContent = new Date().toLocaleString('th-TH');
+    window.print();
 }
 
 function renderNotes(notes) {

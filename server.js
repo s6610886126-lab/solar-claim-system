@@ -256,11 +256,16 @@ app.get('/api/claims/:id', async (req, res) => {
 
 app.post('/api/claims', async (req, res) => {
     // Get max claim number to generate the next one
-    const { data: lastClaim } = await supabase.from('claims').select('claim_number').order('claim_number', { ascending: false }).limit(1);
+    const { data: allClaims } = await supabase.from('claims').select('claim_number');
     let maxNum = 2024000;
-    if (lastClaim && lastClaim.length > 0) {
-        const num = parseInt(lastClaim[0].claim_number.split('-')[1]);
-        if (!isNaN(num) && num > maxNum) maxNum = num;
+    if (allClaims && allClaims.length > 0) {
+        for (const c of allClaims) {
+            const match = c.claim_number.match(/^CLM-(\d+)$/);
+            if (match) {
+                const num = parseInt(match[1]);
+                if (num > maxNum) maxNum = num;
+            }
+        }
     }
 
     // Upload images to Supabase Storage if present
@@ -393,6 +398,9 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.ht
 app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
 app.get('/claim-form', (req, res) => res.sendFile(path.join(__dirname, 'public', 'claim-form.html')));
 app.get('/claim-detail', (req, res) => res.sendFile(path.join(__dirname, 'public', 'claim-detail.html')));
+app.get('/track-claim', (req, res) => res.sendFile(path.join(__dirname, 'public', 'track-claim.html')));
+app.get('/overview', (req, res) => res.sendFile(path.join(__dirname, 'public', 'overview.html')));
+app.get('/import-export', (req, res) => res.sendFile(path.join(__dirname, 'public', 'import-export.html')));
 
 app.get('/api/export/excel', async (req, res) => {
     try {
@@ -411,6 +419,187 @@ app.get('/api/export/excel', async (req, res) => {
     } catch (err) {
         console.error('Excel export error:', err);
         res.status(500).json({ success: false, message: 'ไม่สามารถสร้างไฟล์ Excel ได้' });
+    }
+});
+
+app.post('/api/import/excel', async (req, res) => {
+    const { fileData, fileName } = req.body;
+    if (!fileData) {
+        return res.status(400).json({ success: false, message: 'ไม่พบข้อมูลไฟล์ที่อัปโหลด' });
+    }
+
+    try {
+        const buffer = Buffer.from(fileData, 'base64');
+        const workbook = new ExcelJS.Workbook();
+        
+        let ws;
+        const isCsv = fileName && fileName.toLowerCase().endsWith('.csv');
+        
+        if (isCsv) {
+            const { Readable } = require('stream');
+            const stream = Readable.from(buffer);
+            await workbook.csv.read(stream);
+            ws = workbook.getWorksheet(1) || workbook.worksheets[0];
+        } else {
+            await workbook.xlsx.load(buffer);
+            ws = workbook.getWorksheet('รายการเคลม') || workbook.getWorksheet(1);
+        }
+
+        if (!ws) {
+            return res.status(400).json({ success: false, message: isCsv ? 'ไม่สามารถอ่านไฟล์ CSV ได้' : 'ไม่พบตาราง "รายการเคลม" ในไฟล์ Excel' });
+        }
+
+        const claimsToInsert = [];
+        const seenClaimNumbers = new Set();
+        
+        // Find existing max claim number
+        const { data: dbClaims } = await supabase.from('claims').select('claim_number');
+        let maxNum = 2024000;
+        if (dbClaims && dbClaims.length > 0) {
+            for (const c of dbClaims) {
+                const match = c.claim_number.match(/^CLM-(\d+)$/);
+                if (match) {
+                    const num = parseInt(match[1]);
+                    if (num > maxNum) maxNum = num;
+                }
+            }
+        }
+
+        // Iterate through rows (start at row 2 to skip headers)
+        ws.eachRow((row, rowNumber) => {
+            if (rowNumber === 1) return;
+
+            // Extract values safely
+            const getVal = (col) => {
+                const cell = row.getCell(col);
+                if (cell && cell.value !== null && cell.value !== undefined) {
+                    if (typeof cell.value === 'object' && cell.value.text) return String(cell.value.text).trim();
+                    if (typeof cell.value === 'object' && cell.value.result !== undefined) return String(cell.value.result).trim();
+                    return String(cell.value).trim();
+                }
+                return '';
+            };
+
+            const claimNumRaw = getVal(1);
+            const customerName = getVal(2);
+            const phone = getVal(3);
+            const email = getVal(4);
+            const address = getVal(5);
+            const eqType = getVal(6);
+            const brand = getVal(7);
+            const model = getVal(8);
+            const serial = getVal(9);
+            const purchaseDate = getVal(10);
+            const warNumber = getVal(11);
+            const warPeriod = getVal(12);
+            const warExpiry = getVal(13);
+            const problemDesc = getVal(14);
+            const severityRaw = getVal(15);
+            const statusRaw = getVal(16);
+            const createdAtRaw = getVal(17);
+
+            // Validation: Skip rows with missing critical fields
+            if (!customerName || !phone || !address || !eqType || !brand || !serial || !problemDesc) {
+                console.log(`Skipping row ${rowNumber} due to missing required fields.`);
+                return;
+            }
+
+            // Map Severity (e.g. "80%" -> "80")
+            let severity = '10';
+            if (severityRaw) {
+                const cleanSev = severityRaw.replace('%', '').trim();
+                if (['10', '50', '80', '100'].includes(cleanSev)) {
+                    severity = cleanSev;
+                } else if (severityRaw.includes('ต่ำ') || severityRaw.includes('ปกติ')) {
+                    severity = '10';
+                } else if (severityRaw.includes('ปานกลาง') || severityRaw.includes('บางส่วน')) {
+                    severity = '50';
+                } else if (severityRaw.includes('สูง') || severityRaw.includes('ส่วนใหญ่')) {
+                    severity = '80';
+                } else if (severityRaw.includes('วิกฤต') || severityRaw.includes('อันตราย')) {
+                    severity = '100';
+                }
+            }
+
+            // Map Status
+            let status = 'pending';
+            const statusMap = {
+                'รอดำเนินการ': 'pending', 'pending': 'pending',
+                'กำลังตรวจสอบ': 'reviewing', 'reviewing': 'reviewing',
+                'อนุมัติแล้ว': 'approved', 'อนุมัติ': 'approved', 'approved': 'approved',
+                'ไม่อนุมัติ': 'rejected', 'rejected': 'rejected',
+                'เสร็จสิ้น': 'completed', 'completed': 'completed'
+            };
+            if (statusRaw && statusMap[statusRaw.toLowerCase()]) {
+                status = statusMap[statusRaw.toLowerCase()];
+            }
+
+            // Generate claim number if missing or duplicate
+            let claimNumber = claimNumRaw;
+            if (!claimNumber || !claimNumber.startsWith('CLM-') || seenClaimNumbers.has(claimNumber)) {
+                maxNum += 1;
+                claimNumber = `CLM-${String(maxNum).padStart(7, '0')}`;
+            }
+            seenClaimNumbers.add(claimNumber);
+
+            // Date processing
+            let createdAt = new Date().toISOString();
+            if (createdAtRaw) {
+                let parsedDate = Date.parse(createdAtRaw);
+                if (isNaN(parsedDate)) {
+                    const parts = createdAtRaw.split(/[\/\s:]/);
+                    if (parts.length >= 3) {
+                        const day = parseInt(parts[0]);
+                        const month = parseInt(parts[1]) - 1;
+                        let year = parseInt(parts[2]);
+                        if (year > 2400) year -= 543; // BE to CE conversion
+                        const hour = parseInt(parts[3]) || 0;
+                        const minute = parseInt(parts[4]) || 0;
+                        const second = parseInt(parts[5]) || 0;
+                        const d = new Date(year, month, day, hour, minute, second);
+                        if (!isNaN(d.getTime())) createdAt = d.toISOString();
+                    }
+                } else {
+                    createdAt = new Date(parsedDate).toISOString();
+                }
+            }
+
+            claimsToInsert.push({
+                id: uuidv4(),
+                claim_number: claimNumber,
+                customer: { name: customerName, phone, email, address },
+                equipment: { type: eqType, brand, model, serialNumber: serial, purchaseDate },
+                warranty: { number: warNumber, period: warPeriod, expiryDate: warExpiry },
+                problem: { description: problemDesc, severity, images: [] },
+                status: status,
+                timeline: [{ status: status, date: createdAt, note: 'นำเข้าข้อมูลเคลมจากไฟล์ Excel' }],
+                notes: [],
+                created_at: createdAt,
+                updated_at: createdAt
+            });
+        });
+
+        if (claimsToInsert.length === 0) {
+            return res.status(400).json({ success: false, message: 'ไม่พบรายการเคลมที่ถูกต้องในไฟล์ Excel' });
+        }
+
+        // Upsert into Supabase on claim_number conflict
+        const { error } = await supabase.from('claims').upsert(claimsToInsert, { onConflict: 'claim_number' });
+        if (error) {
+            console.error('Supabase Import Upsert Error:', error);
+            return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูลลงฐานข้อมูล' });
+        }
+
+        // Fetch all claims to sync to Excel cache
+        const { data: allClaims, error: fetchErr } = await supabase.from('claims').select('*').order('created_at', { ascending: false });
+        if (!fetchErr && allClaims) {
+            await syncToExcel(allClaims);
+        }
+
+        res.json({ success: true, message: 'นำเข้าข้อมูลสำเร็จ', count: claimsToInsert.length });
+    } catch (err) {
+        console.error('Import excel API error:', err);
+        res.status(500).json({ success: false, message: 'ไม่สามารถประมวลผลไฟล์ Excel ได้' });
     }
 });
 

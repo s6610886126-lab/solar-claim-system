@@ -29,22 +29,38 @@ function logout() {
 }
 
 function initDashboard() {
-    document.getElementById('userName').textContent = currentUser.name;
-    document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Customer';
-    document.getElementById('userAvatar').innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.email || currentUser.name)}&backgroundColor=b6e3f4" class="avatar-img" alt="Avatar">`;
+    const userNameEl = document.getElementById('userName');
+    const userRoleEl = document.getElementById('userRole');
+    if (userNameEl) userNameEl.textContent = currentUser.name;
+    if (userRoleEl) userRoleEl.textContent = currentUser.role === 'admin' ? 'Administrator' : 'Customer';
+    
+    const userAvatarEl = document.getElementById('userAvatar');
+    if (userAvatarEl) {
+        userAvatarEl.innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.email || currentUser.name)}&backgroundColor=b6e3f4" class="avatar-img" alt="Avatar">`;
+    }
 
     if (currentUser.role !== 'admin') {
         // Hide admin-only sections
-        document.getElementById('statsGrid').style.display = 'none';
-        document.getElementById('chartsSection').style.display = 'none';
-        document.getElementById('exportBtn').style.display = 'none';
+        const chartsSection = document.getElementById('chartsSection');
+        if (chartsSection) chartsSection.style.display = 'none';
+        
+        const exportBtn = document.getElementById('exportBtn');
+        if (exportBtn) exportBtn.style.display = 'none';
+        
+        const importBtn = document.getElementById('importBtn');
+        if (importBtn) importBtn.style.display = 'none';
+        
+        const newItemsBadge = document.getElementById('newItemsBadge');
+        if (newItemsBadge) newItemsBadge.style.display = 'none';
         
         // Update header for customer
-        const header = document.querySelector('.page-header');
-        header.querySelector('h1').textContent = '📋 รายการเคลมของคุณ';
-        header.querySelector('p').textContent = 'ติดตามสถานะการเคลมอุปกรณ์โซลาร์เซลล์ของคุณ';
+        const heroTitle = document.querySelector('.hero-title');
+        const heroSubtitle = document.querySelector('.hero-subtitle');
+        if (heroTitle) heroTitle.innerHTML = 'ระบบจัดการ<br><span style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.2));">เคลมของคุณ</span>';
+        if (heroSubtitle) heroSubtitle.textContent = 'ติดตามสถานะการเคลมอุปกรณ์โซลาร์เซลล์ของคุณแบบเรียลไทม์';
         
-        document.getElementById('tableTitle').style.display = 'none'; // Header already says it
+        const tableTitle = document.getElementById('tableTitle');
+        if (tableTitle) tableTitle.style.display = 'none';
     }
 }
 initDashboard();
@@ -68,30 +84,54 @@ async function loadStats() {
         const { data } = await res.json();
         const s = data.stats;
 
-        animateCount(document.getElementById('statTotal'), s.total);
-        animateCount(document.getElementById('statPending'), s.pending);
-        animateCount(document.getElementById('statApproved'), s.approved);
-        animateCount(document.getElementById('statRejected'), s.rejected);
+        const statTotalEl = document.getElementById('statTotal');
+        const statSuccessEl = document.getElementById('statSuccess');
+        const statAvgTimeEl = document.getElementById('statAvgTime');
+        const statResponseEl = document.getElementById('statResponse');
+
+        if (statTotalEl) animateCount(statTotalEl, s.total);
+        
+        if (statSuccessEl) {
+            const total = s.total || 0;
+            const approved = s.approved || 0;
+            const completed = s.completed || 0;
+            const successRate = total > 0 ? Math.round(((approved + completed) / total) * 100) : 95;
+            
+            let current = 0;
+            const timer = setInterval(() => {
+                current += 3;
+                if (current >= successRate) { current = successRate; clearInterval(timer); }
+                statSuccessEl.textContent = `${current}%`;
+            }, 30);
+        }
+
+        if (statAvgTimeEl) statAvgTimeEl.textContent = '3.2 วัน';
+        if (statResponseEl) statResponseEl.textContent = '24 ชม.';
 
         // Monthly bar chart
         const container = document.getElementById('monthlyChart');
-        const maxCount = Math.max(...data.monthlyStats.map(m => m.count), 1);
-        container.innerHTML = '';
-        data.monthlyStats.forEach((m, i) => {
-            const pct = (m.count / maxCount) * 100;
-            const wrapper = document.createElement('div');
-            wrapper.className = 'chart-bar-wrapper';
-            wrapper.innerHTML = `
-                <div class="chart-bar-value">${m.count}</div>
-                <div class="chart-bar" style="height:0%"></div>
-                <div class="chart-bar-label">${m.month}</div>
-            `;
-            container.appendChild(wrapper);
-            setTimeout(() => { wrapper.querySelector('.chart-bar').style.height = `${Math.max(pct, 5)}%`; }, 100 + i * 100);
-        });
+        if (container) {
+            const maxCount = Math.max(...data.monthlyStats.map(m => m.count), 1);
+            container.innerHTML = '';
+            data.monthlyStats.forEach((m, i) => {
+                const pct = (m.count / maxCount) * 100;
+                const wrapper = document.createElement('div');
+                wrapper.className = 'chart-bar-wrapper';
+                wrapper.innerHTML = `
+                    <div class="chart-bar-value">${m.count}</div>
+                    <div class="chart-bar" style="height:0%"></div>
+                    <div class="chart-bar-label">${m.month}</div>
+                `;
+                container.appendChild(wrapper);
+                setTimeout(() => { wrapper.querySelector('.chart-bar').style.height = `${Math.max(pct, 5)}%`; }, 100 + i * 100);
+            });
+        }
 
         // Donut chart
-        drawDonut(data.equipmentStats, s.total);
+        const canvas = document.getElementById('donutCanvas');
+        if (canvas) {
+            drawDonut(data.equipmentStats, s.total);
+        }
     } catch (e) { console.error('Stats error:', e); }
 }
 
@@ -124,11 +164,74 @@ function drawDonut(eqStats, total) {
     });
 }
 
+// === Sorting State ===
+let currentSortField = 'createdAt';
+let currentSortOrder = 'desc';
+
+function sortBy(field) {
+    if (currentSortField === field) {
+        currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSortField = field;
+        currentSortOrder = 'asc';
+    }
+    
+    const fields = ['claimNumber', 'customer', 'equipment', 'brand', 'severity', 'status', 'createdAt'];
+    fields.forEach(f => {
+        const indicator = document.getElementById(`sort-${f}`);
+        if (indicator) {
+            if (f === currentSortField) {
+                indicator.textContent = currentSortOrder === 'asc' ? ' ▲' : ' ▼';
+                indicator.style.color = 'var(--primary)';
+            } else {
+                indicator.textContent = '';
+                indicator.style.color = '';
+            }
+        }
+    });
+
+    loadClaims();
+}
+
 // Load claims table
 async function loadClaims() {
-    const status = document.getElementById('filterStatus').value;
-    const equipment = document.getElementById('filterEquipment').value;
-    const search = document.getElementById('searchInput').value;
+    const filterStatusEl = document.getElementById('filterStatus');
+    const filterEquipmentEl = document.getElementById('filterEquipment');
+    const searchInputEl = document.getElementById('searchInput');
+
+    // Safe status resolution for pill tabs
+    const status = window.activeStatus || (filterStatusEl ? filterStatusEl.value : 'all');
+    const equipment = filterEquipmentEl ? filterEquipmentEl.value : 'all';
+    const search = searchInputEl ? searchInputEl.value : '';
+
+    const tbody = document.getElementById('claimsTable');
+    const cardsContainer = document.getElementById('claimsListCards');
+    const empty = document.getElementById('emptyState');
+
+    if (!tbody && !cardsContainer) return; // Exit if not on claims-list pages
+
+    // Dynamically update mockup pill tab count numbers
+    const countAllEl = document.getElementById('countAll');
+    const countPendingEl = document.getElementById('countPending');
+    const countReviewingEl = document.getElementById('countReviewing');
+    const countApprovedEl = document.getElementById('countApproved');
+    const countRejectedEl = document.getElementById('countRejected');
+    const countCompletedEl = document.getElementById('countCompleted');
+
+    if (countAllEl) {
+        const statsParams = new URLSearchParams({ userRole: currentUser.role, userEmail: currentUser.email });
+        fetch(`/api/stats?${statsParams}`)
+            .then(res => res.json())
+            .then(({ data }) => {
+                const s = data.stats;
+                if (countAllEl) countAllEl.textContent = s.total;
+                if (countPendingEl) countPendingEl.textContent = s.pending;
+                if (countReviewingEl) countReviewingEl.textContent = s.reviewing;
+                if (countApprovedEl) countApprovedEl.textContent = s.approved;
+                if (countRejectedEl) countRejectedEl.textContent = s.rejected;
+                if (countCompletedEl) countCompletedEl.textContent = s.completed;
+            }).catch(err => console.error(err));
+    }
 
     try {
         const params = new URLSearchParams();
@@ -142,32 +245,117 @@ async function loadClaims() {
 
         const res = await fetch(`/api/claims?${params}`);
         const { data } = await res.json();
-        const tbody = document.getElementById('claimsTable');
-        const empty = document.getElementById('emptyState');
+        
+        // Sort data array
+        data.sort((a, b) => {
+            let valA, valB;
+            if (currentSortField === 'claimNumber') {
+                valA = a.claimNumber;
+                valB = b.claimNumber;
+            } else if (currentSortField === 'customer') {
+                valA = a.customer.name;
+                valB = b.customer.name;
+            } else if (currentSortField === 'equipment') {
+                valA = a.equipment.type;
+                valB = b.equipment.type;
+            } else if (currentSortField === 'brand') {
+                valA = a.equipment.brand;
+                valB = b.equipment.brand;
+            } else if (currentSortField === 'severity') {
+                valA = parseInt(a.problem.severity) || 0;
+                valB = parseInt(b.problem.severity) || 0;
+            } else if (currentSortField === 'status') {
+                valA = a.status;
+                valB = b.status;
+            } else if (currentSortField === 'createdAt') {
+                valA = new Date(a.createdAt).getTime();
+                valB = new Date(b.createdAt).getTime();
+            } else {
+                valA = a.createdAt;
+                valB = b.createdAt;
+            }
+
+            if (valA < valB) return currentSortOrder === 'asc' ? -1 : 1;
+            if (valA > valB) return currentSortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
 
         if (!data.length) {
-            tbody.innerHTML = '';
-            empty.style.display = 'block';
+            if (tbody) tbody.innerHTML = '';
+            if (cardsContainer) cardsContainer.innerHTML = '';
+            if (empty) empty.style.display = 'block';
             return;
         }
-        empty.style.display = 'none';
+        if (empty) empty.style.display = 'none';
 
-        tbody.innerHTML = data.map(c => `
-            <tr class="claim-row">
-                <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer"><strong style="color:var(--primary)">${c.claimNumber}</strong></td>
-                <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer">${c.customer.name}</td>
-                <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer">${c.equipment.type}</td>
-                <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer">${c.equipment.brand}</td>
-                <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer"><span class="severity severity-${c.problem.severity}">${sevLabels[c.problem.severity]}</span></td>
-                <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer"><span class="badge badge-${c.status}">${statusLabels[c.status]}</span></td>
-                <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer">${formatDate(c.createdAt)}</td>
-                <td>
-                    <button class="btn btn-ghost btn-sm" onclick="openModal('${c.id}','${c.status}')" title="เปลี่ยนสถานะ" ${currentUser.role !== 'admin' ? 'style="display:none"' : ''}>⚙️</button>
-                    <button class="btn btn-ghost btn-sm" onclick="deleteClaim('${c.id}')" title="ลบ" style="color:var(--danger); ${currentUser.role !== 'admin' ? 'display:none' : ''}">🗑</button>
-                    <button class="btn btn-ghost btn-sm" onclick="window.location.href='/claim-detail?id=${c.id}'" title="ดูรายละเอียด">👁️</button>
-                </td>
-            </tr>
-        `).join('');
+        // 1. RENDER MOCKUP FLOATING CARDS
+        if (cardsContainer) {
+            cardsContainer.innerHTML = data.map(c => {
+                // Determine CSS colors for status
+                let colorClass = 'blue';
+                let displayStatusText = 'กำลังดำเนินการ';
+                
+                if (c.status === 'pending') {
+                    colorClass = 'orange';
+                    displayStatusText = 'รอดำเนินการ';
+                } else if (c.status === 'completed' || c.status === 'approved') {
+                    colorClass = 'green';
+                    displayStatusText = c.status === 'completed' ? 'เสร็จสิ้น' : 'อนุมัติแล้ว';
+                } else if (c.status === 'rejected') {
+                    colorClass = 'red';
+                    displayStatusText = 'ไม่อนุมัติ';
+                } else if (c.status === 'reviewing') {
+                    colorClass = 'blue';
+                    displayStatusText = 'กำลังดำเนินการ';
+                }
+
+                return `
+                    <div class="claim-card">
+                        <div class="claim-card-left" onclick="window.location.href='/claim-detail?id=${c.id}'">
+                            <div class="claim-icon-box ${colorClass}">⚡</div>
+                            <div class="claim-card-progress ${colorClass}"></div>
+                        </div>
+                        <div class="claim-card-mid" onclick="window.location.href='/claim-detail?id=${c.id}'">
+                            <div class="claim-card-title">${c.claimNumber} — ${c.customer.name}</div>
+                            <div class="claim-card-sub">${c.problem.description}</div>
+                        </div>
+                        <div class="claim-card-right">
+                            <div class="claim-card-status-area" onclick="window.location.href='/claim-detail?id=${c.id}'">
+                                <span class="claim-card-dot-badge ${colorClass}">${displayStatusText}</span>
+                                <span class="claim-card-meta">${c.equipment.type}</span>
+                            </div>
+                            <div class="claim-card-date" onclick="window.location.href='/claim-detail?id=${c.id}'">
+                                ${formatDate(c.createdAt)}
+                            </div>
+                            <div class="claim-card-actions">
+                                <button class="btn btn-ghost btn-sm" onclick="openModal('${c.id}','${c.status}')" title="เปลี่ยนสถานะ" ${currentUser.role !== 'admin' ? 'style="display:none"' : ''}>⚙️</button>
+                                <button class="btn btn-ghost btn-sm" onclick="deleteClaim('${c.id}')" title="ลบ" style="color:var(--danger); ${currentUser.role !== 'admin' ? 'display:none' : ''}">🗑</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 2. RENDER TRADITIONAL TABLE ROWS (Backup Compatibility)
+        if (tbody) {
+            tbody.innerHTML = data.map(c => `
+                <tr class="claim-row">
+                    <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer"><strong style="color:var(--primary)">${c.claimNumber}</strong></td>
+                    <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer">${c.customer.name}</td>
+                    <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer">${c.equipment.type}</td>
+                    <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer">${c.equipment.brand}</td>
+                    <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer"><span class="severity severity-${c.problem.severity}">${sevLabels[c.problem.severity]}</span></td>
+                    <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer"><span class="badge badge-${c.status}">${statusLabels[c.status]}</span></td>
+                    <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer">${formatDate(c.createdAt)}</td>
+                    <td>
+                        <button class="btn btn-ghost btn-sm" onclick="openModal('${c.id}','${c.status}')" title="เปลี่ยนสถานะ" ${currentUser.role !== 'admin' ? 'style="display:none"' : ''}>⚙️</button>
+                        <button class="btn btn-ghost btn-sm" onclick="deleteClaim('${c.id}')" title="ลบ" style="color:var(--danger); ${currentUser.role !== 'admin' ? 'display:none' : ''}">🗑</button>
+                        <button class="btn btn-ghost btn-sm" onclick="window.location.href='/claim-detail?id=${c.id}'" title="ดูรายละเอียด">👁️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
     } catch (e) { console.error('Claims error:', e); }
 }
 
@@ -227,15 +415,80 @@ async function confirmDelete() {
 
 // Debounce search
 let searchTimer;
-document.getElementById('searchInput').addEventListener('input', () => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(loadClaims, 300);
-});
-document.getElementById('filterStatus').addEventListener('change', loadClaims);
-document.getElementById('filterEquipment').addEventListener('change', loadClaims);
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(loadClaims, 300);
+    });
+}
+
+const filterStatus = document.getElementById('filterStatus');
+if (filterStatus) {
+    filterStatus.addEventListener('change', loadClaims);
+}
+
+const filterEquipment = document.getElementById('filterEquipment');
+if (filterEquipment) {
+    filterEquipment.addEventListener('change', loadClaims);
+}
 
 // Init
-if (currentUser.role === 'admin') {
-    loadStats();
-}
+loadStats();
 loadClaims();
+
+// === Excel Import ===
+function triggerImport() {
+    document.getElementById('importFileInput').click();
+}
+
+async function handleImportFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const isExcel = file.name.endsWith('.xlsx');
+    const isCsv = file.name.endsWith('.csv');
+    if (!isExcel && !isCsv) {
+        showToast('กรุณาเลือกไฟล์ Excel (.xlsx) หรือ CSV (.csv) เท่านั้น', 'error');
+        event.target.value = '';
+        return;
+    }
+
+    const importBtn = document.getElementById('importBtn');
+    const originalText = importBtn.innerHTML;
+    importBtn.disabled = true;
+    importBtn.innerHTML = '⏳ กำลังนำเข้าข้อมูล...';
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const base64Data = e.target.result.split(',')[1];
+        
+        try {
+            const res = await fetch('/api/import/excel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fileData: base64Data, fileName: file.name })
+            });
+            const result = await res.json();
+            
+            if (res.ok && result.success) {
+                showToast(`นำเข้าข้อมูลสำเร็จ ${result.count} รายการ!`);
+                loadClaims();
+                if (currentUser.role === 'admin') {
+                    loadStats();
+                }
+            } else {
+                showToast(result.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล', 'error');
+            }
+        } catch (err) {
+            console.error('Import error:', err);
+            showToast('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error');
+        } finally {
+            importBtn.disabled = false;
+            importBtn.innerHTML = originalText;
+            event.target.value = '';
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
