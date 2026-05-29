@@ -129,7 +129,7 @@ function formatClaim(c) {
 const statusLabelsExcel = { pending: 'รอดำเนินการ', reviewing: 'กำลังตรวจสอบ', approved: 'อนุมัติแล้ว', rejected: 'ไม่อนุมัติ', completed: 'เสร็จสิ้น' };
 const sevLabelsExcel = { 10: '10%', 50: '50%', 80: '80%', 100: '100%' };
 
-async function syncToExcel(claimsData) {
+function buildExcelWorkbook(claimsData) {
     const claims = claimsData.map(formatClaim);
     const wb = new ExcelJS.Workbook();
     wb.creator = 'Solar Claim System';
@@ -176,6 +176,11 @@ async function syncToExcel(claimsData) {
     const eqCount = {}; claims.forEach(c => { eqCount[c.equipment?.type || 'อื่นๆ'] = (eqCount[c.equipment?.type || 'อื่นๆ'] || 0) + 1; });
     Object.entries(eqCount).forEach(([k, v]) => ws2.addRow({ label: k, count: v }));
 
+    return wb;
+}
+
+async function syncToExcel(claimsData) {
+    const wb = buildExcelWorkbook(claimsData);
     try { await wb.xlsx.writeFile(EXCEL_FILE); console.log(`📊 Excel synced: ${EXCEL_FILE}`); }
     catch (err) { if (err.code === 'EBUSY') console.log('⚠️ Excel file is open — will sync next time'); else throw err; }
 }
@@ -409,63 +414,17 @@ app.get('/api/export/excel', async (req, res) => {
         if (status && status !== 'all') {
             query = query.eq('status', status);
         }
-
         const { data: rawClaims, error } = await query;
         if (error) throw error;
 
-        const claims = rawClaims.map(formatClaim);
-        const wb = new ExcelJS.Workbook();
-        wb.creator = 'SolarCare System';
-        wb.created = new Date();
-
-        const ws = wb.addWorksheet('รายการเคลม', { properties: { tabColor: { argb: 'FFF59E0B' } }, views: [{ state: 'frozen', ySplit: 1 }] });
-        ws.columns = [
-            { header: 'เลขที่เคลม', key: 'claimNumber', width: 18 }, { header: 'ชื่อลูกค้า', key: 'customerName', width: 22 },
-            { header: 'เบอร์โทร', key: 'phone', width: 16 }, { header: 'อีเมล', key: 'email', width: 24 },
-            { header: 'ที่อยู่', key: 'address', width: 30 }, { header: 'ประเภทอุปกรณ์', key: 'eqType', width: 20 },
-            { header: 'ยี่ห้อ', key: 'brand', width: 16 }, { header: 'รุ่น', key: 'model', width: 14 },
-            { header: 'Serial Number', key: 'serial', width: 20 }, { header: 'วันที่ซื้อ', key: 'purchaseDate', width: 14 },
-            { header: 'เลขประกัน', key: 'warranty', width: 16 }, { header: 'ระยะประกัน', key: 'warPeriod', width: 14 },
-            { header: 'หมดประกัน', key: 'warExpiry', width: 14 }, { header: 'ปัญหา', key: 'problem', width: 40 },
-            { header: 'ความรุนแรง', key: 'severity', width: 14 }, { header: 'สถานะ', key: 'status', width: 16 },
-            { header: 'วันที่แจ้ง', key: 'createdAt', width: 20 }, { header: 'อัปเดตล่าสุด', key: 'updatedAt', width: 20 },
-            { header: 'จำนวนรูปภาพ', key: 'imageCount', width: 14 },
-        ];
-
-        ws.getRow(1).eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; cell.font = { color: { argb: 'FFF59E0B' }, bold: true, size: 11 }; cell.alignment = { vertical: 'middle', horizontal: 'center' }; cell.border = { bottom: { style: 'medium', color: { argb: 'FFF59E0B' } } }; });
-        ws.getRow(1).height = 28;
-
-        const statusColors = { pending: 'FFFBBF24', reviewing: 'FF3B82F6', approved: 'FF10B981', rejected: 'FFEF4444', completed: 'FF8B5CF6' };
-        claims.forEach(c => {
-            const row = ws.addRow({ claimNumber: c.claimNumber, customerName: c.customer?.name || '', phone: c.customer?.phone || '', email: c.customer?.email || '', address: c.customer?.address || '', eqType: c.equipment?.type || '', brand: c.equipment?.brand || '', model: c.equipment?.model || '', serial: c.equipment?.serialNumber || '', purchaseDate: c.equipment?.purchaseDate || '', warranty: c.warranty?.number || '', warPeriod: c.warranty?.period || '', warExpiry: c.warranty?.expiryDate || '', problem: c.problem?.description || '', severity: sevLabelsExcel[c.problem?.severity] || c.problem?.severity || '', status: statusLabelsExcel[c.status] || c.status, createdAt: new Date(c.createdAt).toLocaleString('th-TH'), updatedAt: new Date(c.updatedAt).toLocaleString('th-TH'), imageCount: c.problem?.images?.length || 0 });
-            const statusCell = row.getCell('status'); const sColor = statusColors[c.status]; if (sColor) { statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sColor } }; statusCell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; } statusCell.alignment = { horizontal: 'center' };
-            const sevCell = row.getCell('severity'); const sevColors = { 10: 'FF10B981', 50: 'FFFBBF24', 80: 'FFF97316', 100: 'FFEF4444' }; const sc = sevColors[c.problem?.severity]; if (sc) { sevCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sc } }; sevCell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; } sevCell.alignment = { horizontal: 'center' };
-            row.alignment = { vertical: 'middle', wrapText: true };
-        });
-        ws.autoFilter = { from: 'A1', to: `S${claims.length + 1}` };
-
-        const ws2 = wb.addWorksheet('สรุป', { properties: { tabColor: { argb: 'FF10B981' } } });
-        ws2.columns = [{ header: 'รายการ', key: 'label', width: 25 }, { header: 'จำนวน', key: 'count', width: 12 }];
-        ws2.getRow(1).eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; cell.font = { color: { argb: 'FFF59E0B' }, bold: true, size: 11 }; cell.alignment = { vertical: 'middle', horizontal: 'center' }; });
-
-        ws2.addRow({ label: 'เคลมทั้งหมด', count: claims.length });
-        ws2.addRow({ label: 'รอดำเนินการ', count: claims.filter(c => c.status === 'pending').length });
-        ws2.addRow({ label: 'กำลังตรวจสอบ', count: claims.filter(c => c.status === 'reviewing').length });
-        ws2.addRow({ label: 'อนุมัติแล้ว', count: claims.filter(c => c.status === 'approved').length });
-        ws2.addRow({ label: 'ไม่อนุมัติ', count: claims.filter(c => c.status === 'rejected').length });
-        ws2.addRow({ label: 'เสร็จสิ้น', count: claims.filter(c => c.status === 'completed').length });
-        ws2.addRow({});
-        ws2.addRow({ label: '--- ตามประเภทอุปกรณ์ ---', count: '' });
-        const eqCount = {}; claims.forEach(c => { eqCount[c.equipment?.type || 'อื่นๆ'] = (eqCount[c.equipment?.type || 'อื่นๆ'] || 0) + 1; });
-        Object.entries(eqCount).forEach(([k, v]) => ws2.addRow({ label: k, count: v }));
+        const wb = buildExcelWorkbook(rawClaims);
+        const buffer = await wb.xlsx.writeBuffer();
 
         const filename = status && status !== 'all' ? `solar-claims-${status}.xlsx` : 'solar-claims.xlsx';
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`);
         res.setHeader('Cache-Control', 'no-cache');
-
-        await wb.xlsx.write(res);
-        res.end();
+        res.send(buffer);
     } catch (err) {
         console.error('Excel export error:', err);
         res.status(500).json({ success: false, message: 'ไม่สามารถสร้างไฟล์ Excel ได้' });
