@@ -7,7 +7,12 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const ARTIFACTS_DIR = 'C:\\Users\\User\\.gemini\\antigravity\\brain\\c64ad2fc-ffaf-4d19-87f4-f7de4b0d2a86';
+const fs = require('fs');
+
+const ARTIFACTS_DIR = path.join(__dirname, 'data', 'screenshots');
+if (!fs.existsSync(ARTIFACTS_DIR)) {
+    fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
+}
 
 async function runScreenshotTest() {
     console.log('🌟 STARTING VISUAL CAPTURE AND TESTING 🌟');
