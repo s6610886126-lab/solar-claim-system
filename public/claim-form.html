@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar Claim - แจ้งเคลม</title>
     <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/theme.js"></script>
 </head>
 
 <body>
@@ -96,13 +97,19 @@
                     </div>
                     <div class="form-group">
                         <label for="eqBrand">ยี่ห้อ / รุ่น *</label>
-                        <input type="text" id="eqBrand" class="form-control" placeholder="เช่น JinkoSolar" required>
+                        <select id="eqBrand" class="form-control" required disabled>
+                            <option value="">-- เลือกยี่ห้อ --</option>
+                        </select>
+                        <input type="text" id="eqBrandCustom" class="form-control" placeholder="ระบุยี่ห้อเพิ่มเติม..." style="margin-top: 8px; display: none;">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="eqModel">รุ่น (Model)</label>
-                        <input type="text" id="eqModel" class="form-control" placeholder="เช่น JKM-400M">
+                        <select id="eqModel" class="form-control" disabled>
+                            <option value="">-- เลือกรุ่น --</option>
+                        </select>
+                        <input type="text" id="eqModelCustom" class="form-control" placeholder="ระบุรุ่นเพิ่มเติม..." style="margin-top: 8px; display: none;">
                     </div>
                     <div class="form-group">
                         <label for="eqSerial">Serial Number *</label>

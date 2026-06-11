@@ -39,6 +39,23 @@ function autoFill() {
     }
 }
 
+// === Custom Value Helpers for Select Elements ===
+function getBrandValue() {
+    const brandSel = document.getElementById('eqBrand').value;
+    if (brandSel === 'custom') {
+        return document.getElementById('eqBrandCustom').value;
+    }
+    return brandSel;
+}
+
+function getModelValue() {
+    const modelSel = document.getElementById('eqModel').value;
+    if (modelSel === 'custom') {
+        return document.getElementById('eqModelCustom').value;
+    }
+    return modelSel;
+}
+
 // === Draft Management ===
 function saveDraft() {
     const draft = {
@@ -50,8 +67,8 @@ function saveDraft() {
         },
         equipment: {
             type: document.getElementById('eqType').value,
-            brand: document.getElementById('eqBrand').value,
-            model: document.getElementById('eqModel').value,
+            brand: getBrandValue(),
+            model: getModelValue(),
             serialNumber: document.getElementById('eqSerial').value,
             purchaseDate: document.getElementById('eqPurchaseDate').value
         },
@@ -80,9 +97,13 @@ function loadDraft() {
         if (draft.customer.address) document.getElementById('custAddress').value = draft.customer.address;
 
         // Equipment
-        if (draft.equipment.type) document.getElementById('eqType').value = draft.equipment.type;
-        if (draft.equipment.brand) document.getElementById('eqBrand').value = draft.equipment.brand;
-        if (draft.equipment.model) document.getElementById('eqModel').value = draft.equipment.model;
+        if (draft.equipment.type) {
+            document.getElementById('eqType').value = draft.equipment.type;
+            if (typeof updateBrands === 'function') {
+                updateBrands();
+                setBrandAndModelValues(draft.equipment.brand, draft.equipment.model);
+            }
+        }
         if (draft.equipment.serialNumber) document.getElementById('eqSerial').value = draft.equipment.serialNumber;
         if (draft.equipment.purchaseDate) document.getElementById('eqPurchaseDate').value = draft.equipment.purchaseDate;
 
@@ -189,8 +210,8 @@ document.getElementById('claimForm').addEventListener('submit', async function(e
         },
         equipment: {
             type: document.getElementById('eqType').value,
-            brand: document.getElementById('eqBrand').value,
-            model: document.getElementById('eqModel').value,
+            brand: getBrandValue(),
+            model: getModelValue(),
             serialNumber: document.getElementById('eqSerial').value,
             purchaseDate: document.getElementById('eqPurchaseDate').value
         },
@@ -226,4 +247,221 @@ document.getElementById('claimForm').addEventListener('submit', async function(e
         showToast('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
     }
 });
+
+// === Dynamic Brand & Model Datalists ===
+const brandModelMapping = {
+    "Solar Panel": {
+        brands: ["JinkoSolar", "LONGI Solar", "Trina Solar", "Canadian Solar", "JA Solar"],
+        models: {
+            "JinkoSolar": ["Tiger Neo N-type", "Tiger Pro", "JKM-400M", "JKM-440N"],
+            "LONGI Solar": ["Hi-MO 5", "Hi-MO 6", "LR5-72HPH", "LR4-72HPH"],
+            "Trina Solar": ["Vertex S+", "Vertex DE19", "Tallmax"],
+            "Canadian Solar": ["BiHiKu7", "HiKu6", "CS3W-450MS"],
+            "JA Solar": ["DeepBlue 3.0", "JAM72S30", "JAM54S30"]
+        }
+    },
+    "Inverter": {
+        brands: ["Huawei", "Growatt", "Fronius", "Solis", "Sungrow", "SMA"],
+        models: {
+            "Huawei": ["SUN2000-5KTL-L1", "SUN2000-10KTL-M1", "SUN2000-30KTL-M3", "SUN2000-50KTL"],
+            "Growatt": ["MIN 5000TL-X", "MOD 10KTL3-X", "MID 30KTL3-X", "SPF 5000 ES"],
+            "Fronius": ["Primo 5.0-1", "Symo 10.0-3-M", "Symo Advanced"],
+            "Solis": ["S5-GR1P5K", "S6-GR1P5K", "S5-GR3P10K"],
+            "Sungrow": ["SG5.0RS", "SG10RT", "SG30CX"],
+            "SMA": ["Sunny Boy 5.0", "Sunny Tripower 10.0"]
+        }
+    },
+    "Battery": {
+        brands: ["BYD", "Pylontech", "Tesla", "Huawei", "Growatt"],
+        models: {
+            "BYD": ["Battery-Box Premium HVS", "Battery-Box Premium LVS", "Battery-Box Premium HVM"],
+            "Pylontech": ["US2000C", "US3000C", "US5000", "Force L1", "Force H2"],
+            "Tesla": ["Powerwall 2", "Powerwall 3", "Megapack"],
+            "Huawei": ["LUNA2000-5-S0", "LUNA2000-10-S0", "LUNA2000-15-S0"],
+            "Growatt": ["ARK 2.5L-A1", "ARK 2.5H-A1", "Hope 4.8L-C1"]
+        }
+    },
+    "Charge Controller": {
+        brands: ["Victron Energy", "EPEVER", "SRNE", "MidNite Solar"],
+        models: {
+            "Victron Energy": ["SmartSolar MPPT 150/35", "SmartSolar MPPT 250/100", "BlueSolar MPPT 100/20"],
+            "EPEVER": ["Tracer 4210AN", "Tracer 3210AN", "Tracer 5415AN", "LandStar LS1024B"],
+            "SRNE": ["ML2420", "ML2440", "ML4860"],
+            "MidNite Solar": ["Classic 150", "Classic 200"]
+        }
+    },
+    "Mounting Structure": {
+        brands: ["Schletter", "K2 Systems", "Clenergy", "SolarMount"],
+        models: {
+            "Schletter": ["FixGrid", "Solo5", "ProLine"],
+            "K2 Systems": ["MiniRail", "SingleRail", "SolidRail"],
+            "Clenergy": ["PV-ezRack SolarRoof", "PV-ezRack GroundSolar", "PV-ezRack SolarTerrace"],
+            "SolarMount": ["Standard Rail", "Light Rail"]
+        }
+    },
+    "Cable & Connector": {
+        brands: ["Staubli", "Link", "Nexans", "Helukabel"],
+        models: {
+            "Staubli": ["MC4 Connector", "MC4-Evo 2 Connector", "PV-KBT4 Female", "PV-KST4 Male"],
+            "Link": ["Solar Cable 4mm2", "Solar Cable 6mm2", "Solar Cable 10mm2"],
+            "Nexans": ["KEYLIOS Solar 4mm2", "KEYLIOS Solar 6mm2"],
+            "Helukabel": ["SOLARFLEX-X 4mm2", "SOLARFLEX-X 6mm2"]
+        }
+    }
+};
+
+function updateBrands() {
+    const eqType = document.getElementById('eqType').value;
+    const brandSel = document.getElementById('eqBrand');
+    const modelSel = document.getElementById('eqModel');
+    
+    brandSel.innerHTML = '<option value="">-- เลือกยี่ห้อ --</option>';
+    modelSel.innerHTML = '<option value="">-- เลือกรุ่น --</option>';
+    
+    if (brandModelMapping[eqType]) {
+        brandSel.disabled = false;
+        
+        brandModelMapping[eqType].brands.forEach(brand => {
+            const option = document.createElement('option');
+            option.value = brand;
+            option.textContent = brand;
+            brandSel.appendChild(option);
+        });
+        
+        const customOpt = document.createElement('option');
+        customOpt.value = 'custom';
+        customOpt.textContent = 'อื่นๆ (ระบุเอง)';
+        brandSel.appendChild(customOpt);
+    } else {
+        brandSel.disabled = true;
+        modelSel.disabled = true;
+    }
+    
+    document.getElementById('eqBrandCustom').style.display = 'none';
+    document.getElementById('eqBrandCustom').required = false;
+    document.getElementById('eqBrandCustom').value = '';
+    
+    updateModels();
+}
+
+function updateModels() {
+    const eqType = document.getElementById('eqType').value;
+    const eqBrand = document.getElementById('eqBrand').value;
+    const modelSel = document.getElementById('eqModel');
+    
+    modelSel.innerHTML = '<option value="">-- เลือกรุ่น --</option>';
+    
+    const brandCustom = document.getElementById('eqBrandCustom');
+    if (eqBrand === 'custom') {
+        brandCustom.style.display = 'block';
+        brandCustom.required = true;
+    } else {
+        brandCustom.style.display = 'none';
+        brandCustom.required = false;
+    }
+    
+    if (brandModelMapping[eqType] && eqBrand) {
+        modelSel.disabled = false;
+        
+        const modelsByBrand = brandModelMapping[eqType].models;
+        if (modelsByBrand[eqBrand]) {
+            modelsByBrand[eqBrand].forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                modelSel.appendChild(option);
+            });
+        }
+        
+        const customOpt = document.createElement('option');
+        customOpt.value = 'custom';
+        customOpt.textContent = 'อื่นๆ (ระบุเอง)';
+        modelSel.appendChild(customOpt);
+    } else {
+        modelSel.disabled = true;
+    }
+    
+    checkModelCustomVisibility();
+}
+
+function checkModelCustomVisibility() {
+    const eqModel = document.getElementById('eqModel').value;
+    const modelCustom = document.getElementById('eqModelCustom');
+    if (eqModel === 'custom') {
+        modelCustom.style.display = 'block';
+        modelCustom.required = true;
+    } else {
+        modelCustom.style.display = 'none';
+        modelCustom.required = false;
+    }
+}
+
+function setBrandAndModelValues(brandVal, modelVal) {
+    const brandSel = document.getElementById('eqBrand');
+    const brandCustom = document.getElementById('eqBrandCustom');
+    const modelSel = document.getElementById('eqModel');
+    const modelCustom = document.getElementById('eqModelCustom');
+    
+    if (!brandVal) return;
+    
+    brandSel.disabled = false;
+    
+    let brandFound = false;
+    for (let i = 0; i < brandSel.options.length; i++) {
+        if (brandSel.options[i].value === brandVal) {
+            brandSel.value = brandVal;
+            brandFound = true;
+            break;
+        }
+    }
+    
+    if (!brandFound) {
+        brandSel.value = 'custom';
+        brandCustom.value = brandVal;
+        brandCustom.style.display = 'block';
+        brandCustom.required = true;
+    } else {
+        brandCustom.style.display = 'none';
+        brandCustom.required = false;
+        brandCustom.value = '';
+    }
+    
+    updateModels();
+    
+    if (!modelVal) return;
+    
+    modelSel.disabled = false;
+    
+    let modelFound = false;
+    for (let i = 0; i < modelSel.options.length; i++) {
+        if (modelSel.options[i].value === modelVal) {
+            modelSel.value = modelVal;
+            modelFound = true;
+            break;
+        }
+    }
+    
+    if (!modelFound) {
+        modelSel.value = 'custom';
+        modelCustom.value = modelVal;
+        modelCustom.style.display = 'block';
+        modelCustom.required = true;
+    } else {
+        modelCustom.style.display = 'none';
+        modelCustom.required = false;
+        modelCustom.value = '';
+    }
+}
+
+// Add listeners
+document.getElementById('eqType').addEventListener('change', updateBrands);
+document.getElementById('eqBrand').addEventListener('change', updateModels);
+document.getElementById('eqModel').addEventListener('change', checkModelCustomVisibility);
+
+document.getElementById('eqBrandCustom').addEventListener('input', saveDraft);
+document.getElementById('eqModelCustom').addEventListener('input', saveDraft);
+
+// Initialize on load
+updateBrands();
+
 

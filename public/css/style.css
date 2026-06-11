@@ -38,6 +38,143 @@
     --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* === DARK THEME VARIABLES === */
+[data-theme="dark"] {
+    --bg-light: #0b0f19;            /* Very dark navy */
+    --bg-dark: #070a13;             /* Even darker navy for navbar/hero */
+    --bg-card: #111827;             /* Dark card bg */
+    --border-light: #1f2937;        /* Dark border */
+    --glass-border: rgba(255, 255, 255, 0.05);
+    
+    --text-primary: #f9fafb;        /* Crisp white/light-gray */
+    --text-secondary: #9ca3af;      /* Gray text */
+    --text-muted: #6b7280;          /* Muted gray text */
+    
+    --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    --shadow-hover: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+}
+
+/* === DARK THEME ADJUSTMENTS === */
+[data-theme="dark"] body::before {
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--bg-light);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb { 
+    background: rgba(255, 255, 255, 0.15); 
+    border: 2px solid var(--bg-light);
+}
+
+[data-theme="dark"] thead {
+    background: #1e293b;
+}
+
+[data-theme="dark"] .quick-card .icon-wrapper {
+    background: rgba(245, 158, 11, 0.15);
+}
+
+[data-theme="dark"] .upload-zone {
+    background: #111a2e;
+}
+
+[data-theme="dark"] .toast-success { background: rgba(6, 78, 59, 0.95); }
+[data-theme="dark"] .toast-error { background: rgba(127, 29, 29, 0.95); }
+[data-theme="dark"] .toast-info { background: rgba(120, 53, 4, 0.95); }
+
+[data-theme="dark"] .claim-card-dot-badge.blue { color: #38bdf8; }
+[data-theme="dark"] .claim-card-dot-badge.orange { color: #fbbf24; }
+[data-theme="dark"] .claim-card-dot-badge.green { color: #34d399; }
+[data-theme="dark"] .claim-card-dot-badge.red { color: #f87171; }
+
+[data-theme="dark"] .pill-tab:hover {
+    background: #1e293b;
+    border-color: #475569;
+}
+[data-theme="dark"] .pill-tab.active {
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #fef08a !important;
+}
+[data-theme="dark"] select.form-control {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239CA3AF' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+}
+[data-theme="dark"] .filter-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239CA3AF' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] .premium-stat-card {
+    background: var(--bg-card) !important;
+}
+
+[data-theme="dark"] .chart-premium-card {
+    background: var(--bg-card) !important;
+}
+
+[data-theme="dark"] .card[style*="background: #ffffff"], 
+[data-theme="dark"] .card[style*="background:#ffffff"] {
+    background: var(--bg-card) !important;
+}
+
+[data-theme="dark"] .preview-table[style*="background: #ffffff"],
+[data-theme="dark"] .preview-table[style*="background:#ffffff"] {
+    background: var(--bg-card) !important;
+}
+
+[data-theme="dark"] .preview-table tr[style*="background: #f8fafc"],
+[data-theme="dark"] .preview-table tr[style*="background:#f8fafc"] {
+    background: #1e293b !important;
+}
+
+[data-theme="dark"] #exportStatusSelect[style*="background: #ffffff"],
+[data-theme="dark"] #exportStatusSelect[style*="background:#ffffff"] {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .upload-zone[style*="background: #fafafa"],
+[data-theme="dark"] .upload-zone[style*="background:#fafafa"] {
+    background: #111a2e !important;
+}
+
+[data-theme="dark"] .preview-row:hover {
+    background: #1e293b !important;
+}
+
+
+/* === THEME TOGGLE BUTTON === */
+.theme-toggle-btn {
+    background: #1e293b;
+    border: none;
+    color: var(--text-white);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.theme-toggle-btn:hover {
+    background: #334155;
+    transform: scale(1.05);
+}
+.theme-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    transition: transform 0.5s ease;
+}
+[data-theme="dark"] .theme-toggle-btn svg {
+    transform: rotate(360deg);
+}
+
 body {
     font-family: 'Plus Jakarta Sans', 'Sarabun', sans-serif; 
     background: var(--bg-light); 
