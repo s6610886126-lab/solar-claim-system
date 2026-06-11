@@ -2,12 +2,9 @@ const { exec } = require('child_process');
 const path = require('path');
 
 const tests = [
-    { name: '1. Supabase Direct DB Connection Test', cmd: 'node test-insert.js' },
-    { name: '2. Local Excel Cache File Read Test', cmd: 'node test-excel.js' },
-    { name: '3. Frontend Form Submission POST API Test', cmd: 'node C:\\Users\\User\\.gemini\\antigravity\\brain\\9106b0c4-2a5d-43a2-8f76-3838cc09af1b\\scratch\\test-post-claim.js' },
-    { name: '4. Excel File Bulk Import POST API Test', cmd: 'node C:\\Users\\User\\.gemini\\antigravity\\brain\\9106b0c4-2a5d-43a2-8f76-3838cc09af1b\\scratch\\test-api-import.js' },
-    { name: '5. CSV File Bulk Import POST API Test', cmd: 'node C:\\Users\\User\\.gemini\\antigravity\\brain\\9106b0c4-2a5d-43a2-8f76-3838cc09af1b\\scratch\\test-api-import-csv.js' },
-    { name: '6. Full E2E Headless Workflow Integration Test', cmd: 'node C:\\Users\\User\\.gemini\\antigravity\\brain\\9106b0c4-2a5d-43a2-8f76-3838cc09af1b\\scratch\\test-e2e-headless.js' }
+    { name: '1. Supabase Direct DB Connection Test', cmd: `"${process.execPath}" test-insert.js` },
+    { name: '2. Local Excel Cache File Read Test', cmd: `"${process.execPath}" test-excel.js` },
+    { name: '3. API Integration Endpoints Test (GET/POST)', cmd: `"${process.execPath}" test-api.js` }
 ];
 
 async function runCommand(cmd) {
