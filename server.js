@@ -259,6 +259,87 @@ app.get('/api/claims/:id', async (req, res) => {
     res.json({ success: true, data: formatClaim(claim) });
 });
 
+app.get('/api/notifications', async (req, res) => {
+    const { email, role } = req.query;
+    if (!email || !role) {
+        return res.status(400).json({ success: false, message: 'Missing email or role' });
+    }
+
+    try {
+        let query = supabase.from('claims').select('*');
+        if (role === 'customer') {
+            query = query.filter('customer->>email', 'ilike', email);
+        }
+        
+        const { data: claims, error } = await query;
+        if (error) throw error;
+
+        const notifications = [];
+
+        claims.forEach(c => {
+            const formattedClaim = formatClaim(c);
+            
+            // 1. New claim creation notification
+            notifications.push({
+                id: `${formattedClaim.id}_new`,
+                claimId: formattedClaim.id,
+                claimNumber: formattedClaim.claimNumber,
+                title: role === 'admin' ? `มีใบเคลมใหม่ ${formattedClaim.claimNumber}` : `ใบเคลม ${formattedClaim.claimNumber} ส่งสำเร็จ`,
+                description: role === 'admin' 
+                    ? `โดยคุณ ${formattedClaim.customer?.name || 'ลูกค้า'}` 
+                    : `ระบบได้รับคำขอเคลมและกำลังรอดำเนินการตรวจสอบอุปกรณ์`,
+                date: formattedClaim.createdAt
+            });
+
+            // 2. Timeline status changes
+            if (formattedClaim.timeline && formattedClaim.timeline.length > 1) {
+                formattedClaim.timeline.slice(1).forEach((t, i) => {
+                    const statusName = statusLabelsExcel[t.status] || t.status;
+                    notifications.push({
+                        id: `${formattedClaim.id}_status_${i}`,
+                        claimId: formattedClaim.id,
+                        claimNumber: formattedClaim.claimNumber,
+                        title: `ใบเคลม ${formattedClaim.claimNumber} เปลี่ยนสถานะ`,
+                        description: `สถานะใหม่: ${statusName} (${t.note || 'ไม่มีรายละเอียด'})`,
+                        date: t.date
+                    });
+                });
+            }
+
+            // 3. Notes notifications
+            if (formattedClaim.notes && formattedClaim.notes.length > 0) {
+                formattedClaim.notes.forEach((n, i) => {
+                    const isOwnNote = role === 'admin' 
+                        ? (n.author === 'System Admin' || n.author === 'admin' || n.author.toLowerCase().includes('admin')) 
+                        : (n.author !== 'System Admin' && n.author !== 'admin' && !n.author.toLowerCase().includes('admin'));
+
+                    if (!isOwnNote) {
+                        notifications.push({
+                            id: `${formattedClaim.id}_note_${i}`,
+                            claimId: formattedClaim.id,
+                            claimNumber: formattedClaim.claimNumber,
+                            title: `ข้อความใหม่ในใบเคลม ${formattedClaim.claimNumber}`,
+                            description: `"${n.text.length > 40 ? n.text.slice(0, 40) + '...' : n.text}" โดย ${n.author}`,
+                            date: n.createdAt
+                        });
+                    }
+                });
+            }
+        });
+
+        // Sort notifications by date descending
+        notifications.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // Limit to top 20 notifications
+        const topNotifications = notifications.slice(0, 20);
+
+        res.json({ success: true, data: topNotifications });
+    } catch (err) {
+        console.error('Notifications Error:', err);
+        res.status(500).json({ success: false, message: 'Failed to retrieve notifications' });
+    }
+});
+
 app.get('/api/claims/:id/pdf', async (req, res) => {
     const { id } = req.params;
     let browser;
