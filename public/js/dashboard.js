@@ -105,26 +105,68 @@ async function loadStats() {
             }, 30);
         }
 
-        if (statAvgTimeEl) statAvgTimeEl.textContent = '3.2 วัน';
+        if (statAvgTimeEl) {
+            statAvgTimeEl.textContent = `${data.avgResolutionDays || '3.2'} วัน`;
+        }
         if (statResponseEl) statResponseEl.textContent = '24 ชม.';
 
-        // Monthly bar chart
-        const container = document.getElementById('monthlyChart');
-        if (container) {
-            const maxCount = Math.max(...data.monthlyStats.map(m => m.count), 1);
-            container.innerHTML = '';
-            data.monthlyStats.forEach((m, i) => {
-                const pct = (m.count / maxCount) * 100;
-                const wrapper = document.createElement('div');
-                wrapper.className = 'chart-bar-wrapper';
-                wrapper.innerHTML = `
-                    <div class="chart-bar-value">${m.count}</div>
-                    <div class="chart-bar" style="height:0%"></div>
-                    <div class="chart-bar-label">${m.month}</div>
-                `;
-                container.appendChild(wrapper);
-                setTimeout(() => { wrapper.querySelector('.chart-bar').style.height = `${Math.max(pct, 5)}%`; }, 100 + i * 100);
+        // Monthly chart rendering (Chart.js or Fallback)
+        const monthlyCanvas = document.getElementById('monthlyChartCanvas');
+        if (monthlyCanvas && typeof Chart !== 'undefined') {
+            const ctx = monthlyCanvas.getContext('2d');
+            if (window.myMonthlyChart) window.myMonthlyChart.destroy();
+            window.myMonthlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.monthlyStats.map(m => m.month),
+                    datasets: [{
+                        label: 'จำนวนรายการเคลม',
+                        data: data.monthlyStats.map(m => m.count),
+                        backgroundColor: 'rgba(245, 158, 11, 0.85)',
+                        borderColor: '#f59e0b',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        hoverBackgroundColor: '#fbbf24'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#94a3b8', stepSize: 1 }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
             });
+        } else {
+            // Fallback: Custom HTML bar chart if Chart.js is not loaded
+            const container = document.getElementById('monthlyChart');
+            if (container) {
+                const maxCount = Math.max(...data.monthlyStats.map(m => m.count), 1);
+                container.innerHTML = '';
+                data.monthlyStats.forEach((m, i) => {
+                    const pct = (m.count / maxCount) * 100;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'chart-bar-wrapper';
+                    wrapper.innerHTML = `
+                        <div class="chart-bar-value">${m.count}</div>
+                        <div class="chart-bar" style="height:0%"></div>
+                        <div class="chart-bar-label">${m.month}</div>
+                    `;
+                    container.appendChild(wrapper);
+                    setTimeout(() => { wrapper.querySelector('.chart-bar').style.height = `${Math.max(pct, 5)}%`; }, 100 + i * 100);
+                });
+            }
         }
 
         // Donut chart
@@ -137,6 +179,51 @@ async function loadStats() {
 
 function drawDonut(eqStats, total) {
     const canvas = document.getElementById('donutCanvas');
+    if (!canvas) return;
+
+    if (typeof Chart !== 'undefined') {
+        const ctx = canvas.getContext('2d');
+        if (window.myDonutChart) window.myDonutChart.destroy();
+        
+        const entries = Object.entries(eqStats);
+        const labels = entries.map(([k, v]) => k);
+        const counts = entries.map(([k, v]) => v);
+        const colors = ['#F59E0B','#F97316','#3B82F6','#10B981','#8B5CF6','#EF4444'];
+
+        document.getElementById('donutTotal').textContent = total;
+
+        window.myDonutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: counts,
+                    backgroundColor: colors.slice(0, entries.length),
+                    borderWidth: 2,
+                    borderColor: '#1e293b',
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        const legend = document.getElementById('donutLegend');
+        legend.innerHTML = '';
+        entries.forEach(([key, val], i) => {
+            const pct = total > 0 ? ((val / total) * 100).toFixed(0) : 0;
+            legend.innerHTML += `<div class="donut-legend-item"><div class="donut-legend-color" style="background:${colors[i%colors.length]}"></div><span>${key}</span><span style="margin-left:auto;font-weight:700;">${val} (${pct}%)</span></div>`;
+        });
+        return;
+    }
+
+    // Fallback: Old Canvas API drawing
     const ctx = canvas.getContext('2d');
     canvas.width = 360; canvas.height = 360;
     const cx = 180, cy = 180, outerR = 160, innerR = 110;
@@ -316,7 +403,8 @@ async function loadClaims() {
                             <div class="claim-card-progress ${colorClass}"></div>
                         </div>
                         <div class="claim-card-mid" onclick="window.location.href='/claim-detail?id=${c.id}'">
-                            <div class="claim-card-title">${c.claimNumber} — ${c.customer.name}</div>
+                            <div class="claim-card-number-badge">${c.claimNumber}</div>
+                            <div class="claim-card-title">${c.customer.name}</div>
                             <div class="claim-card-sub">${c.problem.description}</div>
                         </div>
                         <div class="claim-card-right">

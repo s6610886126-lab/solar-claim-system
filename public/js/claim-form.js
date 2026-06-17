@@ -251,34 +251,23 @@ document.getElementById('claimForm').addEventListener('submit', async function(e
 // === Dynamic Brand & Model Datalists ===
 const brandModelMapping = {
     "Solar Panel": {
-        brands: ["JinkoSolar", "LONGI Solar", "Trina Solar", "Canadian Solar", "JA Solar"],
+        brands: ["JinkoSolar", "Solis"],
         models: {
             "JinkoSolar": ["Tiger Neo N-type", "Tiger Pro", "JKM-400M", "JKM-440N"],
-            "LONGI Solar": ["Hi-MO 5", "Hi-MO 6", "LR5-72HPH", "LR4-72HPH"],
-            "Trina Solar": ["Vertex S+", "Vertex DE19", "Tallmax"],
-            "Canadian Solar": ["BiHiKu7", "HiKu6", "CS3W-450MS"],
-            "JA Solar": ["DeepBlue 3.0", "JAM72S30", "JAM54S30"]
+            "Solis": ["Solis Panel 400W", "Solis Panel 440W", "Solis Panel 550W"]
         }
     },
     "Inverter": {
-        brands: ["Huawei", "Growatt", "Fronius", "Solis", "Sungrow", "SMA"],
+        brands: ["Solis"],
         models: {
-            "Huawei": ["SUN2000-5KTL-L1", "SUN2000-10KTL-M1", "SUN2000-30KTL-M3", "SUN2000-50KTL"],
-            "Growatt": ["MIN 5000TL-X", "MOD 10KTL3-X", "MID 30KTL3-X", "SPF 5000 ES"],
-            "Fronius": ["Primo 5.0-1", "Symo 10.0-3-M", "Symo Advanced"],
-            "Solis": ["S5-GR1P5K", "S6-GR1P5K", "S5-GR3P10K"],
-            "Sungrow": ["SG5.0RS", "SG10RT", "SG30CX"],
-            "SMA": ["Sunny Boy 5.0", "Sunny Tripower 10.0"]
+            "Solis": ["S5-GR1P5K", "S6-GR1P5K", "S5-GR3P10K"]
         }
     },
     "Battery": {
-        brands: ["BYD", "Pylontech", "Tesla", "Huawei", "Growatt"],
+        brands: ["Battery Dyness", "LV Topsun"],
         models: {
-            "BYD": ["Battery-Box Premium HVS", "Battery-Box Premium LVS", "Battery-Box Premium HVM"],
-            "Pylontech": ["US2000C", "US3000C", "US5000", "Force L1", "Force H2"],
-            "Tesla": ["Powerwall 2", "Powerwall 3", "Megapack"],
-            "Huawei": ["LUNA2000-5-S0", "LUNA2000-10-S0", "LUNA2000-15-S0"],
-            "Growatt": ["ARK 2.5L-A1", "ARK 2.5H-A1", "Hope 4.8L-C1"]
+            "Battery Dyness": ["Powerbox F-10.0", "Dyness B4850", "Dyness A48100"],
+            "LV Topsun": ["Topsun LV 48V 100Ah", "Topsun LV 48V 200Ah"]
         }
     },
     "Charge Controller": {

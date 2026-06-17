@@ -119,6 +119,7 @@
             color: #d97706 !important;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 </head>
 <body>
     <!-- NAVBAR -->
@@ -215,7 +216,9 @@
                     แนวโน้มแจ้งเคลมรายเดือน
                 </h3>
                 <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0;">แนวโน้มปริมาณการรับเรื่องแจ้งเคลมในรอบ 6 เดือนล่าสุด</p>
-                <div class="chart-bar-container" id="monthlyChart" style="height: 250px; margin-top: 1rem;"></div>
+                <div class="chart-bar-container" id="monthlyChart" style="height: 250px; margin-top: 1rem; position: relative;">
+                    <canvas id="monthlyChartCanvas"></canvas>
+                </div>
             </div>
 
             <!-- Equipment Breakdown -->
@@ -242,6 +245,6 @@
     </main>
 
     <div class="toast-container" id="toastContainer"></div>
-    <script src="/js/dashboard.js"></script>
+    <script src="/js/dashboard.js" defer></script>
 </body>
 </html>

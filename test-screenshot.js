@@ -29,9 +29,12 @@ async function runScreenshotTest() {
     // 2. Launch Puppeteer
     const browser = await puppeteer.launch({
         headless: true,
+        executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     const page = await browser.newPage();
+    page.on('console', msg => console.log('BROWSER CONSOLE:', msg.text()));
+    page.on('pageerror', err => console.error('BROWSER ERROR:', err.message));
     await page.setViewport({ width: 1280, height: 960 });
 
     try {
@@ -51,10 +54,22 @@ async function runScreenshotTest() {
         // 4. Capture Dashboard Page
         console.log('📊 Navigating to Dashboard...');
         await page.goto('http://localhost:3000/dashboard.html', { waitUntil: 'networkidle2' });
-        await page.waitForSelector('table');
+        await page.waitForSelector('#statsGrid');
         const dashboardPath = path.join(ARTIFACTS_DIR, 'dashboard.png');
         await page.screenshot({ path: dashboardPath });
         console.log(`📸 Dashboard screenshot captured at: ${dashboardPath}`);
+
+        // Capture Overview (Analytics) Page
+        console.log('📊 Navigating to Overview...');
+        const response = await page.goto('http://localhost:3000/overview.html', { waitUntil: 'domcontentloaded' });
+        console.log(`📡 Overview response status: ${response ? response.status() : 'null'}`);
+        console.log(`📡 Overview current URL: ${page.url()}`);
+        await page.waitForSelector('#chartsSection');
+        // Let Chart.js animations finish
+        await new Promise(r => setTimeout(r, 2500));
+        const overviewPath = path.join(ARTIFACTS_DIR, 'overview.png');
+        await page.screenshot({ path: overviewPath, fullPage: true });
+        console.log(`📸 Overview screenshot captured at: ${overviewPath}`);
 
         // 5. Capture Claim Detail Page (Web view)
         const claimDetailUrl = `http://localhost:3000/claim-detail.html?id=${claimId}`;

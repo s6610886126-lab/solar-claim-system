@@ -72,6 +72,11 @@ function renderClaim(c) {
         } else if (c.status === 'approved') {
             btns = `<button class="btn btn-primary btn-sm" onclick="openStatusModal('completed','เสร็จสิ้น')">🏁 เสร็จสิ้น</button>`;
         }
+        
+        const downloadBtn = document.getElementById('downloadPdfBtn');
+        if (downloadBtn) {
+            downloadBtn.style.display = 'inline-flex';
+        }
     }
     document.getElementById('actionButtons').innerHTML = btns;
 
@@ -166,6 +171,38 @@ function renderClaim(c) {
 function exportPDF() {
     document.getElementById('printPrintedAt').textContent = new Date().toLocaleString('th-TH');
     window.print();
+}
+
+async function downloadPDF() {
+    const downloadBtn = document.getElementById('downloadPdfBtn');
+    if (!downloadBtn || !currentClaim) return;
+    
+    const originalText = downloadBtn.innerHTML;
+    downloadBtn.disabled = true;
+    downloadBtn.style.opacity = '0.7';
+    downloadBtn.innerHTML = `
+        <svg class="animate-spin" width="18" height="18" fill="none" viewBox="0 0 24 24" style="animation: spin 1s linear infinite; margin-right: 8px;">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" style="opacity: 0.25;"></circle>
+            <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        กำลังสร้าง PDF...
+    `;
+    
+    try {
+        window.location.href = `/api/claims/${currentClaim.id}/pdf`;
+        
+        setTimeout(() => {
+            downloadBtn.disabled = false;
+            downloadBtn.style.opacity = '1';
+            downloadBtn.innerHTML = originalText;
+        }, 4000);
+    } catch (e) {
+        console.error(e);
+        showToast('เกิดข้อผิดพลาดในการดาวน์โหลด PDF', 'error');
+        downloadBtn.disabled = false;
+        downloadBtn.style.opacity = '1';
+        downloadBtn.innerHTML = originalText;
+    }
 }
 
 function renderNotes(notes) {
