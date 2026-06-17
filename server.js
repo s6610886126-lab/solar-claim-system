@@ -141,7 +141,7 @@ function buildExcelWorkbook(claimsData) {
         { header: 'เบอร์โทร', key: 'phone', width: 16 }, { header: 'อีเมล', key: 'email', width: 24 },
         { header: 'ที่อยู่', key: 'address', width: 30 }, { header: 'ประเภทอุปกรณ์', key: 'eqType', width: 20 },
         { header: 'ยี่ห้อ', key: 'brand', width: 16 }, { header: 'รุ่น', key: 'model', width: 14 },
-        { header: 'Serial Number', key: 'serial', width: 20 }, { header: 'วันที่ซื้อ', key: 'purchaseDate', width: 14 },
+        { header: 'Serial Number', key: 'serial', width: 20 }, { header: 'วันที่แจ้งเคลม', key: 'purchaseDate', width: 14 },
         { header: 'เลขประกัน', key: 'warranty', width: 16 }, { header: 'ระยะประกัน', key: 'warPeriod', width: 14 },
         { header: 'หมดประกัน', key: 'warExpiry', width: 14 }, { header: 'ปัญหา', key: 'problem', width: 40 },
         { header: 'ความรุนแรง', key: 'severity', width: 14 }, { header: 'สถานะ', key: 'status', width: 16 },

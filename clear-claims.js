@@ -67,7 +67,7 @@ async function clearClaims() {
             { header: 'ยี่ห้อ', key: 'brand', width: 16 },
             { header: 'รุ่น', key: 'model', width: 14 },
             { header: 'Serial Number', key: 'serial', width: 20 },
-            { header: 'วันที่ซื้อ', key: 'purchaseDate', width: 14 },
+            { header: 'วันที่แจ้งเคลม', key: 'purchaseDate', width: 14 },
             { header: 'เลขประกัน', key: 'warranty', width: 16 },
             { header: 'ระยะประกัน', key: 'warPeriod', width: 14 },
             { header: 'หมดประกัน', key: 'warExpiry', width: 14 },

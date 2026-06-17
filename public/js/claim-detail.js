@@ -89,7 +89,7 @@ function renderClaim(c) {
     document.getElementById('equipmentInfo').innerHTML =
         detailRow('ประเภท', c.equipment.type) + detailRow('ยี่ห้อ', c.equipment.brand) +
         detailRow('รุ่น', c.equipment.model) + detailRow('Serial No.', c.equipment.serialNumber) +
-        detailRow('วันที่ซื้อ', c.equipment.purchaseDate);
+        detailRow('วันที่แจ้งเคลม', c.equipment.purchaseDate);
 
     // Warranty
     document.getElementById('warrantyInfo').innerHTML =
