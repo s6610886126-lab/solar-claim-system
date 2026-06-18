@@ -30,11 +30,32 @@ function calculateExpiryDate(purchaseDateStr, periodStr) {
     const date = new Date(purchaseDateStr);
     if (isNaN(date.getTime())) return '';
 
-    const match = String(periodStr).match(/(\d+)/);
-    if (!match) return '';
+    const str = String(periodStr).toLowerCase();
+    
+    // 1. Try to find "ปี" or "year"
+    let years = 0;
+    const yearMatch = str.match(/(\d+)\s*(?:ปี|year)/i);
+    if (yearMatch) {
+        years = parseInt(yearMatch[1], 10);
+    }
 
-    const years = parseInt(match[1], 10);
+    // 2. Try to find "เดือน" or "month"
+    let months = 0;
+    const monthMatch = str.match(/(\d+)\s*(?:เดือน|month)/i);
+    if (monthMatch) {
+        months = parseInt(monthMatch[1], 10);
+    }
+
+    // 3. Fallback: if neither matched, but there is a plain number
+    if (!yearMatch && !monthMatch) {
+        const plainMatch = str.match(/(\d+)/);
+        if (plainMatch) {
+            years = parseInt(plainMatch[1], 10);
+        }
+    }
+
     date.setFullYear(date.getFullYear() + years);
+    date.setMonth(date.getMonth() + months);
     
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
