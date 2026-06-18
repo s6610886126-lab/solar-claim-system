@@ -31,6 +31,21 @@ function formatDate(d) {
     return new Date(d).toLocaleDateString('th-TH', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
+function formatDateOnly(d) {
+    if (!d) return '-';
+    const parts = d.split('-');
+    if (parts.length === 3) {
+        const year = parseInt(parts[0]);
+        const monthIndex = parseInt(parts[1]) - 1;
+        const day = parseInt(parts[2]);
+        const dateObj = new Date(year, monthIndex, day);
+        return dateObj.toLocaleDateString('th-TH', { day: '2-digit', month: 'long', year: 'numeric' });
+    }
+    const dateObj = new Date(d);
+    if (isNaN(dateObj)) return d;
+    return dateObj.toLocaleDateString('th-TH', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
 function detailRow(label, value) {
     return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${value || '-'}</span></div>`;
 }
@@ -93,7 +108,7 @@ function renderClaim(c) {
     document.getElementById('equipmentInfo').innerHTML =
         detailRow('ประเภท', c.equipment.type) + detailRow('ยี่ห้อ', c.equipment.brand) +
         detailRow('รุ่น', c.equipment.model) + detailRow('Serial No.', c.equipment.serialNumber) +
-        detailRow('วันที่แจ้งเคลม', c.equipment.purchaseDate);
+        detailRow('วันที่แจ้งเคลม', formatDateOnly(c.equipment.purchaseDate));
 
     // Warranty
     document.getElementById('warrantyInfo').innerHTML =
@@ -146,10 +161,10 @@ function renderClaim(c) {
     document.getElementById('printEqType').textContent = c.equipment.type;
     document.getElementById('printEqBrandModel').textContent = `${c.equipment.brand} ${c.equipment.model || ''}`;
     document.getElementById('printEqSerial').textContent = c.equipment.serialNumber;
-    document.getElementById('printEqPurchase').textContent = c.equipment.purchaseDate ? formatDate(c.equipment.purchaseDate) : '-';
+    document.getElementById('printEqPurchase').textContent = formatDateOnly(c.equipment.purchaseDate);
 
     document.getElementById('printWarNum').textContent = c.warranty.number || '-';
-    document.getElementById('printWarExpiry').textContent = c.warranty.expiryDate ? formatDate(c.warranty.expiryDate) : '-';
+    document.getElementById('printWarExpiry').textContent = formatDateOnly(c.warranty.expiryDate);
     document.getElementById('printWarPeriod').textContent = c.warranty.period || '-';
 
     // Clear severity icons/emojis for official print
