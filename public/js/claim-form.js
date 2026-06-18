@@ -9,7 +9,7 @@ if (!currentUser) { window.location.href = '/'; }
 function initNavbar() {
     if (document.getElementById('userName')) document.getElementById('userName').textContent = currentUser.name;
     if (document.getElementById('userRole')) document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Customer';
-    if (document.getElementById('userAvatar')) document.getElementById('userAvatar').innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.email || currentUser.name)}&backgroundColor=b6e3f4" class="avatar-img" alt="Avatar">`;
+    if (document.getElementById('userAvatar')) document.getElementById('userAvatar').innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.name || currentUser.email)}&backgroundColor=b6e3f4" class="avatar-img" alt="Avatar">`;
 }
 initNavbar();
 

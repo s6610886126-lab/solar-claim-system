@@ -36,7 +36,7 @@ function initDashboard() {
     
     const userAvatarEl = document.getElementById('userAvatar');
     if (userAvatarEl) {
-        userAvatarEl.innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.email || currentUser.name)}&backgroundColor=b6e3f4" class="avatar-img" alt="Avatar">`;
+        userAvatarEl.innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.name || currentUser.email)}&backgroundColor=b6e3f4" class="avatar-img" alt="Avatar">`;
     }
 
     if (currentUser.role !== 'admin') {
