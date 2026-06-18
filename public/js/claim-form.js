@@ -67,6 +67,42 @@ function getModelValue() {
 }
 
 // === Draft Management ===
+// === Warranty Period Helpers ===
+function getWarrantyPeriodValue() {
+    const years = parseInt(document.getElementById('warPeriodYears').value) || 0;
+    const months = parseInt(document.getElementById('warPeriodMonths').value) || 0;
+    
+    if (years > 0 && months > 0) {
+        return `${years} ปี ${months} เดือน`;
+    } else if (years > 0) {
+        return `${years} ปี`;
+    } else if (months > 0) {
+        return `${months} เดือน`;
+    }
+    return '';
+}
+
+function setWarrantyPeriodValue(periodStr) {
+    if (!periodStr) return;
+    const str = String(periodStr).toLowerCase();
+    
+    let years = 0;
+    const yearMatch = str.match(/(\d+)\s*(?:ปี|year)/i);
+    if (yearMatch) years = parseInt(yearMatch[1], 10);
+
+    let months = 0;
+    const monthMatch = str.match(/(\d+)\s*(?:เดือน|month)/i);
+    if (monthMatch) months = parseInt(monthMatch[1], 10);
+    
+    if (!yearMatch && !monthMatch) {
+        const plainMatch = str.match(/(\d+)/);
+        if (plainMatch) years = parseInt(plainMatch[1], 10);
+    }
+    
+    document.getElementById('warPeriodYears').value = years;
+    document.getElementById('warPeriodMonths').value = months;
+}
+
 function saveDraft() {
     const draft = {
         customer: {
@@ -84,7 +120,7 @@ function saveDraft() {
         },
         warranty: {
             number: document.getElementById('warNumber').value,
-            period: document.getElementById('warPeriod').value
+            period: getWarrantyPeriodValue()
         },
         problem: {
             description: document.getElementById('probDesc').value,
@@ -119,7 +155,7 @@ function loadDraft() {
 
         // Warranty
         if (draft.warranty.number) document.getElementById('warNumber').value = draft.warranty.number;
-        if (draft.warranty.period) document.getElementById('warPeriod').value = draft.warranty.period;
+        if (draft.warranty.period) setWarrantyPeriodValue(draft.warranty.period);
 
         // Problem
         if (draft.problem.description) document.getElementById('probDesc').value = draft.problem.description;
@@ -137,6 +173,7 @@ loadDraft();
 const formInputs = document.querySelectorAll('#claimForm input, #claimForm select, #claimForm textarea');
 formInputs.forEach(input => {
     input.addEventListener('input', saveDraft);
+    input.addEventListener('change', saveDraft);
 });
 
 // === Image Upload ===
@@ -227,7 +264,7 @@ document.getElementById('claimForm').addEventListener('submit', async function(e
         },
         warranty: {
             number: document.getElementById('warNumber').value,
-            period: document.getElementById('warPeriod').value,
+            period: getWarrantyPeriodValue(),
             expiryDate: ''
         },
         problem: {
