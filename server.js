@@ -568,7 +568,7 @@ app.get('/api/stats', async (req, res) => {
                 }
             }
         });
-        const avgResolutionDays = resolvedCount > 0 ? (totalDurationMs / (1000 * 60 * 60 * 24) / resolvedCount).toFixed(1) : '3.2';
+        const avgResolutionDays = resolvedCount > 0 ? (totalDurationMs / (1000 * 60 * 60 * 24) / resolvedCount).toFixed(1) : '0.0';
 
         res.json({ success: true, data: { stats: s, equipmentStats: eqStats, monthlyStats: monthly, severityStats: sevStats, avgResolutionDays } });
     } catch (err) {

@@ -95,20 +95,26 @@ async function loadStats() {
             const total = s.total || 0;
             const approved = s.approved || 0;
             const completed = s.completed || 0;
-            const successRate = total > 0 ? Math.round(((approved + completed) / total) * 100) : 95;
+            const successRate = total > 0 ? Math.round(((approved + completed) / total) * 100) : 0;
             
-            let current = 0;
-            const timer = setInterval(() => {
-                current += 3;
-                if (current >= successRate) { current = successRate; clearInterval(timer); }
-                statSuccessEl.textContent = `${current}%`;
-            }, 30);
+            if (successRate === 0) {
+                statSuccessEl.textContent = '0%';
+            } else {
+                let current = 0;
+                const timer = setInterval(() => {
+                    current += 3;
+                    if (current >= successRate) { current = successRate; clearInterval(timer); }
+                    statSuccessEl.textContent = `${current}%`;
+                }, 30);
+            }
         }
 
         if (statAvgTimeEl) {
-            statAvgTimeEl.textContent = `${data.avgResolutionDays || '3.2'} วัน`;
+            statAvgTimeEl.textContent = s.total > 0 ? `${data.avgResolutionDays || '0.0'} วัน` : '0 วัน';
         }
-        if (statResponseEl) statResponseEl.textContent = '24 ชม.';
+        if (statResponseEl) {
+            statResponseEl.textContent = s.total > 0 ? '24 ชม.' : '0 ชม.';
+        }
 
         // Monthly chart rendering (Chart.js or Fallback)
         const monthlyCanvas = document.getElementById('monthlyChartCanvas');
