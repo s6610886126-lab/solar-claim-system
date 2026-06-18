@@ -77,6 +77,10 @@ function renderClaim(c) {
         if (downloadBtn) {
             downloadBtn.style.display = 'inline-flex';
         }
+        const printBtn = document.getElementById('printPdfBtn');
+        if (printBtn) {
+            printBtn.style.display = 'inline-flex';
+        }
     }
     document.getElementById('actionButtons').innerHTML = btns;
 
