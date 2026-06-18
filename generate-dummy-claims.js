@@ -412,7 +412,7 @@ async function syncToExcelLocal(claims) {
 }
 
 async function insertDummyData() {
-    console.log('⚡ Starting dummy data generation script (5 claims)...');
+    console.log('⚡ Starting dummy data generation script (2 claims)...');
 
     // 1. Delete all existing claims from Supabase
     console.log('🗑️ Deleting all records from Supabase "claims" table first...');
@@ -431,7 +431,7 @@ async function insertDummyData() {
     const claimsToInsert = [];
     let startClaimNum = 2026001;
 
-    for (let i = 0; i < Math.min(5, dummyClaims.length); i++) {
+    for (let i = 0; i < Math.min(2, dummyClaims.length); i++) {
         const c = dummyClaims[i];
         
         // Construct timeline
