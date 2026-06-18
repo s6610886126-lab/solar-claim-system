@@ -25,6 +25,23 @@ if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('YOUR_SUPABASE')) {
 
 const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder');
 
+function calculateExpiryDate(purchaseDateStr, periodStr) {
+    if (!purchaseDateStr) return '';
+    const date = new Date(purchaseDateStr);
+    if (isNaN(date.getTime())) return '';
+
+    const match = String(periodStr).match(/(\d+)/);
+    if (!match) return '';
+
+    const years = parseInt(match[1], 10);
+    date.setFullYear(date.getFullYear() + years);
+    
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
 // --- Helper: Upload Base64 Images to Supabase Storage ---
 async function uploadImagesToSupabase(base64Images) {
     if (!base64Images || !Array.isArray(base64Images) || base64Images.length === 0) return [];
@@ -433,12 +450,23 @@ app.post('/api/claims', async (req, res) => {
         req.body.problem.images = await uploadImagesToSupabase(req.body.problem.images);
     }
 
+    const purchaseDate = req.body.equipment ? req.body.equipment.purchaseDate : '';
+    const period = req.body.warranty ? req.body.warranty.period : '';
+    let expiryDate = req.body.warranty ? req.body.warranty.expiryDate : '';
+    if (!expiryDate || expiryDate === '') {
+        expiryDate = calculateExpiryDate(purchaseDate, period);
+    }
+
     const newClaim = {
         id: uuidv4(),
         claim_number: `CLM-${String(maxNum + 1).padStart(7, '0')}`,
         customer: req.body.customer,
         equipment: req.body.equipment,
-        warranty: req.body.warranty,
+        warranty: {
+            number: req.body.warranty ? req.body.warranty.number : '',
+            period: req.body.warranty ? req.body.warranty.period : '',
+            expiryDate: expiryDate
+        },
         problem: req.body.problem,
         status: 'pending',
         timeline: [{ status: 'pending', date: new Date().toISOString(), note: 'รับเรื่องเคลมเข้าระบบ' }],
@@ -460,10 +488,23 @@ app.put('/api/claims/:id', async (req, res) => {
         problemUpdates.images = await uploadImagesToSupabase(req.body.problem.images);
     }
 
+    const equipment = req.body.equipment || currentClaim.equipment;
+    const warranty = req.body.warranty || currentClaim.warranty;
+    const purchaseDate = equipment ? equipment.purchaseDate : '';
+    const period = warranty ? warranty.period : '';
+    let expiryDate = warranty ? warranty.expiryDate : '';
+    if (!expiryDate || expiryDate === '') {
+        expiryDate = calculateExpiryDate(purchaseDate, period);
+    }
+
     const updates = {
         customer: req.body.customer || currentClaim.customer,
-        equipment: req.body.equipment || currentClaim.equipment,
-        warranty: req.body.warranty || currentClaim.warranty,
+        equipment: equipment,
+        warranty: {
+            number: warranty ? warranty.number : '',
+            period: warranty ? warranty.period : '',
+            expiryDate: expiryDate
+        },
         problem: problemUpdates,
         updated_at: new Date().toISOString()
     };
@@ -750,12 +791,17 @@ app.post('/api/import/excel', async (req, res) => {
                 }
             }
 
+            let finalExpiry = warExpiry;
+            if (!finalExpiry || finalExpiry === '') {
+                finalExpiry = calculateExpiryDate(purchaseDate, warPeriod);
+            }
+
             claimsToInsert.push({
                 id: uuidv4(),
                 claim_number: claimNumber,
                 customer: { name: customerName, phone, email, address },
                 equipment: { type: eqType, brand, model, serialNumber: serial, purchaseDate },
-                warranty: { number: warNumber, period: warPeriod, expiryDate: warExpiry },
+                warranty: { number: warNumber, period: warPeriod, expiryDate: finalExpiry },
                 problem: { description: problemDesc, severity, images: [] },
                 status: status,
                 timeline: [{ status: status, date: createdAt, note: 'นำเข้าข้อมูลเคลมจากไฟล์ Excel' }],
