@@ -198,6 +198,33 @@ function drawDonut(eqStats, total) {
 
         document.getElementById('donutTotal').textContent = total;
 
+        if (total === 0) {
+            window.myDonutChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['ไม่มีข้อมูล'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['#475569'],
+                        borderWidth: 2,
+                        borderColor: '#1e293b'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    }
+                }
+            });
+            const legend = document.getElementById('donutLegend');
+            if (legend) legend.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:1rem;">ไม่มีข้อมูลอุปกรณ์</div>';
+            return;
+        }
+
         window.myDonutChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
@@ -235,10 +262,24 @@ function drawDonut(eqStats, total) {
     const cx = 180, cy = 180, outerR = 160, innerR = 110;
     const colors = ['#F59E0B','#F97316','#3B82F6','#10B981','#8B5CF6','#EF4444'];
     const entries = Object.entries(eqStats);
-    let startAngle = -Math.PI / 2;
 
     document.getElementById('donutTotal').textContent = total;
 
+    if (total === 0) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+        ctx.arc(cx, cy, innerR, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.fillStyle = '#475569';
+        ctx.fill();
+        
+        const legend = document.getElementById('donutLegend');
+        if (legend) legend.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:1rem;">ไม่มีข้อมูลอุปกรณ์</div>';
+        return;
+    }
+
+    let startAngle = -Math.PI / 2;
     entries.forEach(([key, val], i) => {
         const slice = (val / total) * Math.PI * 2;
         ctx.beginPath();
