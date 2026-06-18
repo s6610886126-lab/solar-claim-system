@@ -13,6 +13,16 @@ function initNavbar() {
 }
 initNavbar();
 
+// Initialize flatpickr to display DD/MM/YYYY while outputting YYYY-MM-DD
+if (typeof flatpickr !== 'undefined') {
+    flatpickr("#eqPurchaseDate", {
+        altInput: true,
+        altFormat: "d/m/Y",
+        dateFormat: "Y-m-d",
+        locale: "th"
+    });
+}
+
 function logout() {
     localStorage.removeItem('solar_user');
     window.location.href = '/';
