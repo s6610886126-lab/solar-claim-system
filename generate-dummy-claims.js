@@ -431,7 +431,7 @@ async function insertDummyData() {
     const claimsToInsert = [];
     let startClaimNum = 2026001;
 
-    for (let i = 0; i < Math.min(2, dummyClaims.length); i++) {
+    for (let i = 0; i < Math.min(5, dummyClaims.length); i++) {
         const c = dummyClaims[i];
         
         // Construct timeline
