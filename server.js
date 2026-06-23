@@ -10,6 +10,58 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data', 'claims.json');
 const EXCEL_FILE = path.join(__dirname, 'data', 'claims.xlsx');
+const AVATARS_FILE = path.join(__dirname, 'data', 'user_avatars.json');
+
+function getAvatars() {
+    try {
+        if (fs.existsSync(AVATARS_FILE)) {
+            return JSON.parse(fs.readFileSync(AVATARS_FILE, 'utf8'));
+        }
+    } catch (e) {
+        console.error('Error reading avatars file:', e);
+    }
+    return {};
+}
+
+function saveAvatars(avatars) {
+    try {
+        if (!fs.existsSync(path.dirname(AVATARS_FILE))) {
+            fs.mkdirSync(path.dirname(AVATARS_FILE), { recursive: true });
+        }
+        fs.writeFileSync(AVATARS_FILE, JSON.stringify(avatars, null, 2), 'utf8');
+    } catch (e) {
+        console.error('Error writing avatars file:', e);
+    }
+}
+
+async function uploadSingleImageToSupabase(base64Str) {
+    if (!base64Str) return null;
+    if (base64Str.startsWith('http')) return base64Str;
+    try {
+        const matches = base64Str.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (!matches || matches.length !== 3) return null;
+
+        const contentType = matches[1];
+        const buffer = Buffer.from(matches[2], 'base64');
+        const fileExtension = contentType.split('/')[1] || 'png';
+        const fileName = `avatar-${uuidv4()}.${fileExtension}`;
+
+        const { data, error } = await supabase.storage
+            .from('claim-images')
+            .upload(fileName, buffer, { contentType, upsert: false });
+
+        if (error) {
+            console.error('Supabase Storage Error uploading avatar:', error);
+            return null;
+        }
+
+        const { data: { publicUrl } } = supabase.storage.from('claim-images').getPublicUrl(fileName);
+        return publicUrl;
+    } catch (err) {
+        console.error('Failed to upload avatar image:', err);
+        return null;
+    }
+}
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -251,7 +303,9 @@ app.post('/api/login', async (req, res) => {
         .single();
 
     if (user) {
-        return res.json({ success: true, user: { name: user.name, email: user.email, phone: user.phone, role: user.role } });
+        const avatars = getAvatars();
+        const avatarUrl = avatars[user.email] || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(user.name || user.email)}&backgroundColor=b6e3f4`;
+        return res.json({ success: true, user: { name: user.name, email: user.email, phone: user.phone, role: user.role, avatarUrl } });
     }
 
     if (username.includes('@')) {
@@ -266,10 +320,131 @@ app.post('/api/login', async (req, res) => {
 
         if (customerClaims && customerClaims.length > 0) {
             const cust = customerClaims[0].customer;
-            return res.json({ success: true, user: { name: cust.name, email: username, phone: cust.phone, role: 'customer' } });
+            const avatars = getAvatars();
+            const avatarUrl = avatars[username] || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(cust.name || username)}&backgroundColor=b6e3f4`;
+            return res.json({ success: true, user: { name: cust.name, email: username, phone: cust.phone, role: 'customer', avatarUrl } });
         }
     }
     res.status(401).json({ success: false, message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
+});
+
+app.put('/api/users/profile', async (req, res) => {
+    let { email, name, phone, password, avatarUrl } = req.body;
+    if (!email) {
+        return res.status(400).json({ success: false, message: 'กรุณาระบุอีเมล' });
+    }
+
+    try {
+        if (avatarUrl) {
+            if (avatarUrl.startsWith('data:')) {
+                const uploadedUrl = await uploadSingleImageToSupabase(avatarUrl);
+                if (uploadedUrl) {
+                    avatarUrl = uploadedUrl;
+                } else {
+                    return res.status(500).json({ success: false, message: 'ไม่สามารถอัปโหลดรูปภาพโปรไฟล์ได้' });
+                }
+            }
+            const avatars = getAvatars();
+            avatars[email] = avatarUrl;
+            saveAvatars(avatars);
+        }
+
+        const updateData = { name, phone };
+        if (password && password.trim() !== '') {
+            updateData.password = password.trim();
+        }
+
+        const { data, error } = await supabase
+            .from('users')
+            .update(updateData)
+            .ilike('email', email)
+            .select('*');
+
+        if (error) {
+            console.error('Update profile error:', error);
+            return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการอัปเดตข้อมูล' });
+        }
+
+        if (!data || data.length === 0) {
+            return res.status(404).json({ success: false, message: 'ไม่พบผู้ใช้นี้ในระบบ' });
+        }
+
+        const updatedUser = data[0];
+        const avatars = getAvatars();
+        const finalAvatarUrl = avatars[updatedUser.email] || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(updatedUser.name || updatedUser.email)}&backgroundColor=b6e3f4`;
+        res.json({
+            success: true,
+            message: 'อัปเดตข้อมูลส่วนตัวสำเร็จ',
+            user: {
+                name: updatedUser.name,
+                email: updatedUser.email,
+                phone: updatedUser.phone,
+                role: updatedUser.role,
+                avatarUrl: finalAvatarUrl
+            }
+        });
+    } catch (err) {
+        console.error('Update profile server error:', err);
+        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' });
+    }
+});
+
+app.post('/api/users/avatar', async (req, res) => {
+    let { email, avatarUrl } = req.body;
+    if (!email || !avatarUrl) {
+        return res.status(400).json({ success: false, message: 'กรุณาระบุข้อมูลให้ครบถ้วน' });
+    }
+
+    try {
+        if (avatarUrl.startsWith('data:')) {
+            const uploadedUrl = await uploadSingleImageToSupabase(avatarUrl);
+            if (!uploadedUrl) {
+                return res.status(500).json({ success: false, message: 'ไม่สามารถอัปโหลดรูปภาพโปรไฟล์ได้' });
+            }
+            avatarUrl = uploadedUrl;
+        }
+
+        const avatars = getAvatars();
+        avatars[email] = avatarUrl;
+        saveAvatars(avatars);
+
+        res.json({ success: true, message: 'อัปเดตรูปโปรไฟล์สำเร็จ', avatarUrl });
+    } catch (err) {
+        console.error('Set avatar error:', err);
+        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการตั้งค่ารูปโปรไฟล์' });
+    }
+});
+
+app.get('/api/users/avatars', async (req, res) => {
+    try {
+        const { data: users, error } = await supabase.from('users').select('name, email');
+        if (error) {
+            console.error('Error fetching users for avatars mapping:', error);
+            return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการดึงข้อมูล' });
+        }
+
+        const avatars = getAvatars();
+        const avatarMapping = {};
+        const nameMapping = {};
+        
+        // Default admin avatars and names
+        avatarMapping['admin@solar.com'] = avatars['admin@solar.com'] || 'https://api.dicebear.com/7.x/adventurer/svg?seed=Admin&backgroundColor=b6e3f4';
+        nameMapping['admin@solar.com'] = 'System Admin';
+
+        if (users) {
+            users.forEach(user => {
+                const avatar = avatars[user.email] || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(user.name || user.email)}&backgroundColor=b6e3f4`;
+                avatarMapping[user.email] = avatar;
+                avatarMapping[user.name] = avatar;
+                nameMapping[user.email] = user.name;
+            });
+        }
+
+        res.json({ success: true, avatars: avatarMapping, names: nameMapping });
+    } catch (err) {
+        console.error('Get avatars mapping error:', err);
+        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' });
+    }
 });
 
 app.get('/api/claims', async (req, res) => {
@@ -560,7 +735,25 @@ app.post('/api/claims/:id/notes', async (req, res) => {
     const { data: claim } = await supabase.from('claims').select('*').eq('id', req.params.id).single();
     if (!claim) return res.status(404).json({ success: false, message: 'ไม่พบข้อมูลเคลม' });
 
-    const note = { id: uuidv4(), text: req.body.text, author: req.body.author || 'Admin', createdAt: new Date().toISOString() };
+    let imageUrl = null;
+    if (req.body.image) {
+        try {
+            const uploaded = await uploadImagesToSupabase([req.body.image]);
+            if (uploaded && uploaded.length > 0) {
+                imageUrl = uploaded[0];
+            }
+        } catch (uploadErr) {
+            console.error('Failed to upload chat image to Supabase:', uploadErr);
+        }
+    }
+
+    const note = { 
+        id: uuidv4(), 
+        text: req.body.text, 
+        author: req.body.author || 'Admin', 
+        image: imageUrl, 
+        createdAt: new Date().toISOString() 
+    };
     const newNotes = [...(claim.notes || []), note];
 
     const { data, error } = await supabase.from('claims').update({

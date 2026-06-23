@@ -2,6 +2,23 @@
 const statusLabels = { pending:'รอดำเนินการ', reviewing:'กำลังตรวจสอบ', approved:'อนุมัติแล้ว', rejected:'ไม่อนุมัติ', completed:'เสร็จสิ้น' };
 const sevLabels = { low:'🟢 ต่ำ', medium:'🟡 ปานกลาง', high:'🟠 สูง', critical:'🔴 วิกฤต', 10: '1-10% - ใช้งานได้ปกติ', 50: '11-50% - ใช้งานได้บางส่วน', 80: '51-80% - ใช้งานไม่ได้เป็นส่วนใหญ่', 100: '81-100% - ใช้งานไม่ได้ / อันตราย' };
 let currentClaim = null;
+let userAvatars = {};
+let userNames = {};
+
+async function loadUserAvatars() {
+    try {
+        const res = await fetch('/api/users/avatars');
+        if (res.ok) {
+            const json = await res.json();
+            if (json.success) {
+                userAvatars = json.avatars || {};
+                userNames = json.names || {};
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load user avatars mapping:', e);
+    }
+}
 
 const currentUser = JSON.parse(localStorage.getItem('solar_user'));
 if (!currentUser) { window.location.href = '/'; }
@@ -9,14 +26,12 @@ if (!currentUser) { window.location.href = '/'; }
 function initNavbar() {
     if (document.getElementById('userName')) document.getElementById('userName').textContent = currentUser.name;
     if (document.getElementById('userRole')) document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Customer';
-    if (document.getElementById('userAvatar')) document.getElementById('userAvatar').innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.name || currentUser.email)}&backgroundColor=b6e3f4" class="avatar-img" alt="Avatar">`;
+    if (document.getElementById('userAvatar')) {
+        const avatarSrc = currentUser.avatarUrl || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.name || currentUser.email)}&backgroundColor=b6e3f4`;
+        document.getElementById('userAvatar').innerHTML = `<img src="${avatarSrc}" class="avatar-img" alt="Avatar">`;
+    }
 }
 initNavbar();
-
-function logout() {
-    localStorage.removeItem('solar_user');
-    window.location.href = '/';
-}
 
 function showToast(msg, type='success') {
     const c = document.getElementById('toastContainer');
@@ -100,8 +115,9 @@ function renderClaim(c) {
     document.getElementById('actionButtons').innerHTML = btns;
 
     // Customer
+    const currentCustName = userNames[c.customer.email] || c.customer.name;
     document.getElementById('customerInfo').innerHTML =
-        detailRow('ชื่อ', c.customer.name) + detailRow('โทร', c.customer.phone) +
+        detailRow('ชื่อ', currentCustName) + detailRow('โทร', c.customer.phone) +
         detailRow('อีเมล', c.customer.email) + detailRow('ที่อยู่', c.customer.address);
 
     // Equipment
@@ -224,34 +240,150 @@ async function downloadPDF() {
     }
 }
 
+window.selectedChatImageBase64 = null;
+
+function handleChatImageSelection() {
+    const fileInput = document.getElementById('chatImageFile');
+    const previewContainer = document.getElementById('chatImagePreview');
+    const previewName = document.getElementById('chatImageName');
+    
+    if (fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('ขนาดรูปภาพต้องไม่เกิน 5MB', 'error');
+            fileInput.value = '';
+            return;
+        }
+
+        previewName.textContent = `📷 ${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+        previewContainer.style.display = 'flex';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            selectedChatImageBase64 = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function clearChatImageAttachment() {
+    document.getElementById('chatImageFile').value = '';
+    document.getElementById('chatImagePreview').style.display = 'none';
+    selectedChatImageBase64 = null;
+}
+
+function handleChatEnter(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        addNote();
+    }
+}
+
 function renderNotes(notes) {
     const el = document.getElementById('notesList');
-    if (!notes.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">ยังไม่มีหมายเหตุ</p>'; return; }
-    el.innerHTML = notes.map(n => `
-        <div class="note-item">
-            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(n.author)}&backgroundColor=b6e3f4" class="note-avatar" alt="Avatar">
-            <div class="note-content">
-                <div class="note-header"><span class="note-author">${n.author}</span><span class="note-date">${formatDate(n.createdAt)}</span></div>
-                <div class="note-text">${n.text}</div>
+    if (!notes.length) { 
+        el.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;margin-top:2.5rem;width:100%;">💬 ยังไม่มีประวัติการสนทนาเกี่ยวกับเคสนี้</p>'; 
+        return; 
+    }
+    
+    // Get customer email for this claim
+    const customerEmail = currentClaim && currentClaim.customer ? currentClaim.customer.email : '';
+    
+    el.innerHTML = notes.map(n => {
+        const isNoteAdmin = String(n.author).toLowerCase().includes('admin');
+        
+        // Determine alignment based on active session role
+        const isSentByMe = currentUser.role === 'admin' ? isNoteAdmin : !isNoteAdmin;
+        const wrapperClass = isSentByMe ? 'sent' : 'received';
+        
+        // Determine correct display name and avatar dynamically
+        let displayName = n.author;
+        let avatarUrl = '';
+        
+        if (isNoteAdmin) {
+            displayName = userNames['admin@solar.com'] || 'System Admin';
+            avatarUrl = userAvatars['admin@solar.com'] || `https://api.dicebear.com/7.x/adventurer/svg?seed=Admin&backgroundColor=b6e3f4`;
+        } else if (customerEmail) {
+            displayName = userNames[customerEmail] || n.author;
+            avatarUrl = userAvatars[customerEmail] || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(n.author)}&backgroundColor=b6e3f4`;
+        } else {
+            avatarUrl = userAvatars[n.author] || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(n.author)}&backgroundColor=b6e3f4`;
+        }
+        
+        let imageHtml = '';
+        if (n.image) {
+            imageHtml = `<img src="${n.image}" class="chat-bubble-image" onclick="openLightbox('${n.image}')" alt="แนบรูปภาพ">`;
+        }
+
+        const date = new Date(n.createdAt);
+        const timeStr = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+        const dateStr = date.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
+        const displayTime = `${timeStr} | ${dateStr}`;
+
+        return `
+            <div class="chat-bubble-wrapper ${wrapperClass}">
+                <img src="${avatarUrl}" class="chat-avatar" alt="Avatar">
+                <div class="chat-bubble-content">
+                    <div class="chat-bubble-header">
+                        <span class="chat-author">${displayName}</span>
+                        <span class="chat-date">${displayTime}</span>
+                    </div>
+                    <div class="chat-bubble">
+                        <div>${n.text || ''}</div>
+                        ${imageHtml}
+                    </div>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
+
+    // Scroll to the bottom of message list
+    setTimeout(() => {
+        el.scrollTop = el.scrollHeight;
+    }, 50);
 }
 
 async function addNote() {
-    const text = document.getElementById('newNote').value.trim();
-    if (!text) return;
+    const inputEl = document.getElementById('newNote');
+    const sendBtn = document.getElementById('chatSendBtn');
+    const text = inputEl.value.trim();
+    
+    if (!text && !selectedChatImageBase64) return;
+    
+    inputEl.disabled = true;
+    sendBtn.disabled = true;
+    const originalBtnText = sendBtn.textContent;
+    sendBtn.textContent = 'ส่ง...';
+
     try {
+        const payload = {
+            text: text || (selectedChatImageBase64 ? 'ส่งรูปภาพแนบ' : ''),
+            author: currentUser.name,
+            image: selectedChatImageBase64
+        };
+
         const res = await fetch(`/api/claims/${currentClaim.id}/notes`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, author: currentUser.name })
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
+
         if (res.ok) {
-            document.getElementById('newNote').value = '';
-            showToast('เพิ่มหมายเหตุเรียบร้อย');
-            loadClaim();
+            inputEl.value = '';
+            clearChatImageAttachment();
+            showToast('ส่งข้อความเรียบร้อย');
+            await loadClaim();
+        } else {
+            showToast('ไม่สามารถส่งข้อความได้', 'error');
         }
-    } catch (e) { showToast('เกิดข้อผิดพลาด', 'error'); }
+    } catch (e) { 
+        showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error'); 
+    } finally {
+        inputEl.disabled = false;
+        sendBtn.disabled = false;
+        sendBtn.textContent = originalBtnText;
+        inputEl.focus();
+    }
 }
 
 function openStatusModal(newStatus, label) {
@@ -298,4 +430,8 @@ function closeLightbox() {
     if (lb) lb.classList.remove('active');
 }
 
-loadClaim();
+async function initPage() {
+    await loadUserAvatars();
+    await loadClaim();
+}
+initPage();

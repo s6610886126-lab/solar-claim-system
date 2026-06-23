@@ -23,11 +23,6 @@ if (!currentUser) {
     throw new Error('Not authenticated');
 }
 
-function logout() {
-    localStorage.removeItem('solar_user');
-    window.location.href = '/';
-}
-
 function initDashboard() {
     const userNameEl = document.getElementById('userName');
     const userRoleEl = document.getElementById('userRole');
@@ -36,7 +31,8 @@ function initDashboard() {
     
     const userAvatarEl = document.getElementById('userAvatar');
     if (userAvatarEl) {
-        userAvatarEl.innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.name || currentUser.email)}&backgroundColor=b6e3f4" class="avatar-img" alt="Avatar">`;
+        const avatarSrc = currentUser.avatarUrl || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(currentUser.name || currentUser.email)}&backgroundColor=b6e3f4`;
+        userAvatarEl.innerHTML = `<img src="${avatarSrc}" class="avatar-img" alt="Avatar">`;
     }
 
     if (currentUser.role !== 'admin') {

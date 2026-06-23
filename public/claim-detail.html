@@ -132,14 +132,27 @@
                     </div>
                 </div>
 
-                <!-- Notes -->
+                <!-- Case Discussion Chat Box -->
                 <div class="card animate-in animate-delay-3">
-                    <div class="detail-section">
-                        <h3>📝 หมายเหตุ</h3>
-                        <div id="notesList"></div>
-                        <div style="margin-top:1rem;">
-                            <textarea id="newNote" class="form-control" rows="3" placeholder="เพิ่มหมายเหตุ..."></textarea>
-                            <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="addNote()">💬 เพิ่มหมายเหตุ</button>
+                    <div class="detail-section chat-box-card">
+                        <h3>💬 สนทนาเกี่ยวกับเคสเคลม</h3>
+                        <div class="chat-messages-container" id="notesList"></div>
+                        
+                        <!-- Image Attachment Preview -->
+                        <div id="chatImagePreview" class="chat-preview-container" style="display: none;">
+                            <span id="chatImageName">image.png</span>
+                            <button type="button" class="chat-preview-cancel" onclick="clearChatImageAttachment()">×</button>
+                        </div>
+                        
+                        <div class="chat-input-row">
+                            <input type="file" id="chatImageFile" accept="image/*" style="display: none;" onchange="handleChatImageSelection()">
+                            <button type="button" class="chat-attach-btn" onclick="document.getElementById('chatImageFile').click()" title="แนบรูปภาพ">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+                                </svg>
+                            </button>
+                            <input type="text" id="newNote" class="chat-input-text" placeholder="พิมพ์ข้อความโต้ตอบที่นี่..." onkeydown="handleChatEnter(event)">
+                            <button class="btn btn-primary btn-sm" style="height: 44px; border-radius: 12px; margin: 0; padding: 0 18px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" onclick="addNote()" id="chatSendBtn">ส่ง</button>
                         </div>
                     </div>
                 </div>
