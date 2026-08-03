@@ -103,10 +103,6 @@ function renderClaim(c) {
             btns = `<button class="btn btn-primary btn-sm" onclick="openStatusModal('completed','Completed')">🏁 Complete Case</button>`;
         }
         
-        const downloadBtn = document.getElementById('downloadPdfBtn');
-        if (downloadBtn) {
-            downloadBtn.style.display = 'inline-flex';
-        }
         const printBtn = document.getElementById('printPdfBtn');
         if (printBtn) {
             printBtn.style.display = 'inline-flex';
