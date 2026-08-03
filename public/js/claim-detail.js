@@ -239,12 +239,139 @@ async function downloadPDF() {
                 onclone: (clonedDoc) => {
                     const clonedArea = clonedDoc.getElementById('printArea');
                     if (clonedArea) {
+                        clonedArea.classList.remove('print-only');
                         clonedArea.style.display = 'block';
                         clonedArea.style.position = 'relative';
                         clonedArea.style.visibility = 'visible';
-                        clonedArea.style.padding = '10px';
+                        clonedArea.style.width = '100%';
+                        clonedArea.style.maxWidth = '800px';
+                        clonedArea.style.margin = '0 auto';
+                        clonedArea.style.padding = '20px';
                         clonedArea.style.backgroundColor = '#ffffff';
+                        clonedArea.style.color = '#000000';
                     }
+
+                    const style = clonedDoc.createElement('style');
+                    style.innerHTML = `
+                        body {
+                            background: #ffffff !important;
+                            color: #000000 !important;
+                            font-family: 'Sarabun', sans-serif !important;
+                        }
+                        #printArea {
+                            display: block !important;
+                            visibility: visible !important;
+                            background: #ffffff !important;
+                            color: #000000 !important;
+                            width: 100% !important;
+                        }
+                        .print-header {
+                            display: flex !important;
+                            justify-content: space-between !important;
+                            align-items: flex-start !important;
+                            margin-bottom: 1.2rem !important;
+                        }
+                        .print-logo h2 {
+                            font-size: 18pt !important;
+                            font-weight: 800 !important;
+                            color: #0f172a !important;
+                            margin: 0 0 2px 0 !important;
+                        }
+                        .print-logo p {
+                            font-size: 9pt !important;
+                            color: #475569 !important;
+                            margin: 0 !important;
+                        }
+                        .print-doc-info {
+                            text-align: right !important;
+                        }
+                        .print-doc-info h1 {
+                            font-size: 15pt !important;
+                            font-weight: 800 !important;
+                            margin: 0 !important;
+                            color: #000000 !important;
+                        }
+                        .print-doc-info h3 {
+                            font-size: 9pt !important;
+                            color: #475569 !important;
+                            margin: 0 0 8px 0 !important;
+                        }
+                        .print-meta-table {
+                            border-collapse: collapse !important;
+                            margin-left: auto !important;
+                        }
+                        .print-meta-table td {
+                            padding: 2px 6px !important;
+                            border: none !important;
+                            font-size: 9pt !important;
+                            text-align: left !important;
+                        }
+                        .print-divider {
+                            border: 0 !important;
+                            height: 2px !important;
+                            background: #000000 !important;
+                            margin-bottom: 1.2rem !important;
+                        }
+                        .print-section {
+                            margin-bottom: 1.2rem !important;
+                        }
+                        .print-sec-title {
+                            font-size: 11pt !important;
+                            font-weight: 700 !important;
+                            border-bottom: 2px solid #cbd5e1 !important;
+                            padding-bottom: 3px !important;
+                            margin-bottom: 6px !important;
+                            color: #0f172a !important;
+                        }
+                        .print-data-table {
+                            width: 100% !important;
+                            border-collapse: collapse !important;
+                        }
+                        .print-data-table td {
+                            padding: 5px 8px !important;
+                            border: 1px solid #cbd5e1 !important;
+                            font-size: 9pt !important;
+                            vertical-align: top !important;
+                            color: #000000 !important;
+                        }
+                        .print-timeline-table {
+                            width: 100% !important;
+                            border-collapse: collapse !important;
+                        }
+                        .print-timeline-table th {
+                            background: #f1f5f9 !important;
+                            color: #000000 !important;
+                            border: 1px solid #94a3b8 !important;
+                            padding: 5px 8px !important;
+                            font-size: 9pt !important;
+                            font-weight: 700 !important;
+                            text-align: left !important;
+                        }
+                        .print-timeline-table td {
+                            padding: 5px 8px !important;
+                            border: 1px solid #cbd5e1 !important;
+                            font-size: 8.5pt !important;
+                            color: #000000 !important;
+                        }
+                        .print-signature-section {
+                            display: flex !important;
+                            justify-content: space-between !important;
+                            margin-top: 2.5rem !important;
+                        }
+                        .print-sig-col {
+                            width: 45% !important;
+                            text-align: center !important;
+                        }
+                        .print-footer {
+                            text-align: center !important;
+                            font-size: 8pt !important;
+                            color: #64748b !important;
+                            margin-top: 30px !important;
+                            border-top: 1px solid #e2e8f0 !important;
+                            padding-top: 5px !important;
+                        }
+                    `;
+                    clonedDoc.head.appendChild(style);
                 }
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
