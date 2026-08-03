@@ -224,13 +224,37 @@ async function downloadPDF() {
     `;
     
     try {
-        window.location.href = `/api/claims/${currentClaim.id}/pdf`;
-        
-        setTimeout(() => {
-            downloadBtn.disabled = false;
-            downloadBtn.style.opacity = '1';
-            downloadBtn.innerHTML = originalText;
-        }, 4000);
+        const element = document.getElementById('printArea');
+        if (!element) throw new Error('Print area element not found');
+
+        document.getElementById('printPrintedAt').textContent = new Date().toLocaleString('en-US');
+
+        const opt = {
+            margin:       10,
+            filename:     `Claim-Request-${currentClaim.claimNumber || currentClaim.claim_number || 'UNKNOWN'}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true,
+                onclone: (clonedDoc) => {
+                    const clonedArea = clonedDoc.getElementById('printArea');
+                    if (clonedArea) {
+                        clonedArea.style.display = 'block';
+                        clonedArea.style.position = 'relative';
+                        clonedArea.style.visibility = 'visible';
+                        clonedArea.style.padding = '10px';
+                        clonedArea.style.backgroundColor = '#ffffff';
+                    }
+                }
+            },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        await html2pdf().from(element).set(opt).save();
+
+        downloadBtn.disabled = false;
+        downloadBtn.style.opacity = '1';
+        downloadBtn.innerHTML = originalText;
     } catch (e) {
         console.error(e);
         showToast('Failed to download PDF', 'error');
