@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solar Claim - แจ้งเคลม</title>
+    <title>Solar Care - File Claim</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="/js/theme.js"></script>
@@ -29,149 +29,149 @@
             Solar<span>Care</span>
         </a>
         <nav>
-            <a href="/dashboard">หน้าหลัก</a>
-            <a href="/claim-form" class="active">แจ้งเคลม</a>
-            <a href="/track-claim">ติดตามสถานะ</a>
-            <a href="/overview">ภาพรวม</a>
-            <a href="/import-export">นำเข้า/ส่งออก</a>
+            <a href="/dashboard">Home</a>
+            <a href="/claim-form" class="active">File Claim</a>
+            <a href="/track-claim">Track Status</a>
+            <a href="/overview">Overview</a>
+            <a href="/import-export">Import/Export</a>
         </nav>
         <div class="user-info">
             <button class="notify-btn">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
                 </svg>
-                แจ้งเตือน
+                Notifications
             </button>
             <div class="avatar" id="userAvatar">S</div>
-            <button onclick="logout()" class="btn btn-ghost btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);" title="ออกจากระบบ">🚪 ออก</button>
+            <button onclick="logout()" class="btn btn-ghost btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);" title="Logout">🚪 Logout</button>
         </div>
     </header>
 
     <main class="page-container">
         <div class="page-header animate-in">
-            <h1>📝 แจ้งเคลมอุปกรณ์</h1>
-            <p>กรอกข้อมูลเพื่อแจ้งเคลมอุปกรณ์โซลาร์เซลล์</p>
+            <h1>📝 File Equipment Claim</h1>
+            <p>Fill in the details to submit a solar equipment claim</p>
         </div>
 
         <form id="claimForm" class="card animate-in" style="max-width:900px;">
-            <!-- ข้อมูลลูกค้า -->
+            <!-- Customer Information -->
             <div class="detail-section">
-                <h3>👤 ข้อมูลลูกค้า</h3>
+                <h3>👤 Customer Information</h3>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="custName">ชื่อ-นามสกุล *</label>
-                        <input type="text" id="custName" class="form-control" placeholder="ชื่อ-นามสกุล" required>
+                        <label for="custName">Full Name *</label>
+                        <input type="text" id="custName" class="form-control" placeholder="Full Name" required>
                     </div>
                     <div class="form-group">
-                        <label for="custPhone">เบอร์โทรศัพท์ *</label>
-                        <input type="tel" id="custPhone" class="form-control" placeholder="08X-XXX-XXXX" required>
+                        <label for="custPhone">Phone Number *</label>
+                        <input type="tel" id="custPhone" class="form-control" placeholder="08x-xxx-xxxx" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="custEmail">อีเมล</label>
+                        <label for="custEmail">Email Address</label>
                         <input type="email" id="custEmail" class="form-control" placeholder="email@example.com">
                     </div>
                     <div class="form-group">
-                        <label for="custAddress">ที่อยู่ *</label>
-                        <input type="text" id="custAddress" class="form-control" placeholder="ที่อยู่สำหรับจัดส่ง"
+                        <label for="custAddress">Address *</label>
+                        <input type="text" id="custAddress" class="form-control" placeholder="Shipping address for replacement"
                             required>
                     </div>
                 </div>
             </div>
 
-            <!-- ข้อมูลอุปกรณ์ -->
+            <!-- Equipment Details -->
             <div class="detail-section">
-                <h3>🔧 ข้อมูลอุปกรณ์</h3>
+                <h3>🔧 Equipment Details</h3>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="eqType">ประเภทอุปกรณ์ *</label>
+                        <label for="eqType">Equipment Type *</label>
                         <select id="eqType" class="form-control" required>
-                            <option value="">-- เลือกประเภท --</option>
+                            <option value="">-- Select Type --</option>
                             <option value="Solar Panel">Solar Panel</option>
                             <option value="Inverter">Inverter</option>
                             <option value="Battery">Battery</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="eqBrand">ยี่ห้อ / รุ่น *</label>
+                        <label for="eqBrand">Brand / Manufacturer *</label>
                         <select id="eqBrand" class="form-control" required disabled>
-                            <option value="">-- เลือกยี่ห้อ --</option>
+                            <option value="">-- Select Brand --</option>
                         </select>
-                        <input type="text" id="eqBrandCustom" class="form-control" placeholder="ระบุยี่ห้อเพิ่มเติม..." style="margin-top: 8px; display: none;">
+                        <input type="text" id="eqBrandCustom" class="form-control" placeholder="Specify other brand..." style="margin-top: 8px; display: none;">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="eqModel">รุ่น (Model)</label>
+                        <label for="eqModel">Model</label>
                         <select id="eqModel" class="form-control" disabled>
-                            <option value="">-- เลือกรุ่น --</option>
+                            <option value="">-- Select Model --</option>
                         </select>
-                        <input type="text" id="eqModelCustom" class="form-control" placeholder="ระบุรุ่นเพิ่มเติม..." style="margin-top: 8px; display: none;">
+                        <input type="text" id="eqModelCustom" class="form-control" placeholder="Specify other model..." style="margin-top: 8px; display: none;">
                     </div>
                     <div class="form-group">
                         <label for="eqSerial">Serial Number *</label>
-                        <input type="text" id="eqSerial" class="form-control" placeholder="หมายเลขเครื่อง" required>
+                        <input type="text" id="eqSerial" class="form-control" placeholder="Device Serial Number" required>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="eqPurchaseDate">วันที่แจ้งเคลม</label>
-                    <input type="text" id="eqPurchaseDate" class="form-control" placeholder="เลือกวันที่แจ้งเคลม...">
+                    <label for="eqPurchaseDate">Purchase Date</label>
+                    <input type="text" id="eqPurchaseDate" class="form-control" placeholder="Select purchase date...">
                 </div>
             </div>
 
-            <!-- ข้อมูลการรับประกัน -->
+            <!-- Warranty Information -->
             <div class="detail-section">
-                <h3>🛡️ ข้อมูลการรับประกัน</h3>
+                <h3>🛡️ Warranty Information</h3>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="warNumber">เลขที่ใบรับประกัน</label>
+                        <label for="warNumber">Warranty Certificate No.</label>
                         <input type="text" id="warNumber" class="form-control" placeholder="WRT-XXXXX">
                     </div>
                     <div class="form-group">
-                        <label>ระยะเวลารับประกัน</label>
+                        <label>Warranty Period</label>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <div>
                                 <select id="warPeriodYears" class="form-control" style="cursor: pointer; padding: 10px 12px;">
-                                    <option value="0">0 ปี</option>
-                                    <option value="1">1 ปี</option>
-                                    <option value="2">2 ปี</option>
-                                    <option value="3">3 ปี</option>
-                                    <option value="4">4 ปี</option>
-                                    <option value="5">5 ปี</option>
-                                    <option value="6">6 ปี</option>
-                                    <option value="7">7 ปี</option>
-                                    <option value="8">8 ปี</option>
-                                    <option value="9">9 ปี</option>
-                                    <option value="10">10 ปี</option>
-                                    <option value="11">11 ปี</option>
-                                    <option value="12">12 ปี</option>
-                                    <option value="13">13 ปี</option>
-                                    <option value="14">14 ปี</option>
-                                    <option value="15">15 ปี</option>
-                                    <option value="16">16 ปี</option>
-                                    <option value="17">17 ปี</option>
-                                    <option value="18">18 ปี</option>
-                                    <option value="19">19 ปี</option>
-                                    <option value="20">20 ปี</option>
-                                    <option value="25">25 ปี</option>
-                                    <option value="30">30 ปี</option>
+                                    <option value="0">0 years</option>
+                                    <option value="1">1 year</option>
+                                    <option value="2">2 years</option>
+                                    <option value="3">3 years</option>
+                                    <option value="4">4 years</option>
+                                    <option value="5">5 years</option>
+                                    <option value="6">6 years</option>
+                                    <option value="7">7 years</option>
+                                    <option value="8">8 years</option>
+                                    <option value="9">9 years</option>
+                                    <option value="10">10 years</option>
+                                    <option value="11">11 years</option>
+                                    <option value="12">12 years</option>
+                                    <option value="13">13 years</option>
+                                    <option value="14">14 years</option>
+                                    <option value="15">15 years</option>
+                                    <option value="16">16 years</option>
+                                    <option value="17">17 years</option>
+                                    <option value="18">18 years</option>
+                                    <option value="19">19 years</option>
+                                    <option value="20">20 years</option>
+                                    <option value="25">25 years</option>
+                                    <option value="30">30 years</option>
                                 </select>
                             </div>
                             <div>
                                 <select id="warPeriodMonths" class="form-control" style="cursor: pointer; padding: 10px 12px;">
-                                    <option value="0">0 เดือน</option>
-                                    <option value="1">1 เดือน</option>
-                                    <option value="2">2 เดือน</option>
-                                    <option value="3">3 เดือน</option>
-                                    <option value="4">4 เดือน</option>
-                                    <option value="5">5 เดือน</option>
-                                    <option value="6">6 เดือน</option>
-                                    <option value="7">7 เดือน</option>
-                                    <option value="8">8 เดือน</option>
-                                    <option value="9">9 เดือน</option>
-                                    <option value="10">10 เดือน</option>
-                                    <option value="11">11 เดือน</option>
+                                    <option value="0">0 months</option>
+                                    <option value="1">1 month</option>
+                                    <option value="2">2 months</option>
+                                    <option value="3">3 months</option>
+                                    <option value="4">4 months</option>
+                                    <option value="5">5 months</option>
+                                    <option value="6">6 months</option>
+                                    <option value="7">7 months</option>
+                                    <option value="8">8 months</option>
+                                    <option value="9">9 months</option>
+                                    <option value="10">10 months</option>
+                                    <option value="11">11 months</option>
                                 </select>
                             </div>
                         </div>
@@ -179,27 +179,27 @@
                 </div>
             </div>
 
-            <!-- รายละเอียดปัญหา -->
+            <!-- Problem Details -->
             <div class="detail-section">
-                <h3>⚠️ รายละเอียดปัญหา</h3>
+                <h3>⚠️ Problem Details</h3>
                 <div class="form-group">
-                    <label for="probDesc">คำอธิบายปัญหา *</label>
-                    <textarea id="probDesc" class="form-control" rows="4" placeholder="อธิบายปัญหาที่พบอย่างละเอียด..."
+                    <label for="probDesc">Problem Description *</label>
+                    <textarea id="probDesc" class="form-control" rows="4" placeholder="Describe the issue in detail..."
                         required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="probSeverity">เปอร์เซ็นความเสียหาย *</label>
+                    <label for="probSeverity">Damage Percentage *</label>
                     <select id="probSeverity" class="form-control" required>
-                        <option value="">-- เลือกเปอร์เซ็น --</option>
-                        <option value="10">1-10% - ใช้งานได้ปกติ</option>
-                        <option value="50">11-50% - ใช้งานได้บางส่วน</option>
-                        <option value="80">51-80% - ใช้งานไม่ได้เป็นส่วนใหญ่</option>
-                        <option value="100">81-100% - ใช้งานไม่ได้ / อันตราย</option>
+                        <option value="">-- Select Percentage --</option>
+                        <option value="10">1-10% - Normal Functioning</option>
+                        <option value="50">11-50% - Partially Functioning</option>
+                        <option value="80">51-80% - Mostly Non-Functioning</option>
+                        <option value="100">81-100% - Non-Functioning / Dangerous</option>
                     </select>
                 </div>
                 <!-- Image Upload -->
                 <div class="form-group">
-                    <label>📷 แนบรูปภาพ (สูงสุด 5 รูป)</label>
+                    <label>📷 Attach Photos (Max 5)</label>
                     <div class="upload-zone" id="uploadZone">
                         <input type="file" id="imageInput" multiple accept="image/*" style="display:none;">
                         <div class="upload-placeholder" id="uploadPlaceholder">
@@ -207,12 +207,12 @@
                                 viewBox="0 0 24 24">
                                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
                             </svg>
-                            <p style="margin-top:8px;color:var(--text-muted);font-size:0.9rem;">ลากไฟล์มาวางที่นี่ หรือ
+                            <p style="margin-top:8px;color:var(--text-muted);font-size:0.9rem;">Drag and drop files here, or
                                 <span
-                                    style="color:var(--primary);cursor:pointer;text-decoration:underline;">เลือกไฟล์</span>
+                                    style="color:var(--primary);cursor:pointer;text-decoration:underline;">browse files</span>
                             </p>
-                            <p style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;">รองรับ JPG, PNG, WEBP
-                                (สูงสุด 5MB ต่อรูป)</p>
+                            <p style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;">Supports JPG, PNG, WEBP
+                                (Max 5MB per photo)</p>
                         </div>
                         <div class="upload-preview" id="uploadPreview"></div>
                     </div>
@@ -221,15 +221,14 @@
 
             <div
                 style="display:flex;gap:12px;justify-content:flex-end;padding-top:1rem;border-top:1px solid var(--glass-border);">
-                <a href="/dashboard" class="btn btn-ghost">ยกเลิก</a>
-                <button type="submit" class="btn btn-primary">📤 ส่งเรื่องเคลม</button>
+                <a href="/dashboard" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary">📤 Submit Claim</button>
             </div>
         </form>
     </main>
 
     <div class="toast-container" id="toastContainer"></div>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
     <script src="/js/claim-form.js"></script>
 </body>
 

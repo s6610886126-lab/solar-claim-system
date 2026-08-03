@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const toggleBtn = document.createElement('button');
         toggleBtn.className = 'theme-toggle-btn';
         toggleBtn.type = 'button';
-        toggleBtn.title = 'เปลี่ยนโหมดหน้าจอ (Dark/Light)';
+        toggleBtn.title = 'Toggle Dark/Light Mode';
         
         const sunIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
         
@@ -67,11 +67,11 @@ function initNotifications() {
     dropdown.id = 'notifyDropdown';
     dropdown.innerHTML = `
         <div class="notify-header">
-            <span>การแจ้งเตือน</span>
-            <button class="notify-clear-btn" id="notifyClearBtn">อ่านแล้วทั้งหมด</button>
+            <span>Notifications</span>
+            <button class="notify-clear-btn" id="notifyClearBtn">Mark all as read</button>
         </div>
         <div class="notify-list" id="notifyList">
-            <div class="notify-empty">กำลังโหลด...</div>
+            <div class="notify-empty">Loading...</div>
         </div>
     `;
     wrapper.appendChild(dropdown);
@@ -121,13 +121,13 @@ function initNotifications() {
         const readList = JSON.parse(localStorage.getItem('read_notifications') || '[]');
         
         if (notificationsData.length === 0) {
-            listContainer.innerHTML = '<div class="notify-empty">ไม่มีการแจ้งเตือนในระบบ</div>';
+            listContainer.innerHTML = '<div class="notify-empty">No notifications found</div>';
             return;
         }
 
         listContainer.innerHTML = notificationsData.map(item => {
             const isUnread = !readList.includes(item.id);
-            const dateStr = new Date(item.date).toLocaleDateString('th-TH', { 
+            const dateStr = new Date(item.date).toLocaleDateString('en-US', { 
                 day: '2-digit', 
                 month: 'short', 
                 hour: '2-digit', 
@@ -216,7 +216,7 @@ function initProfileDropdown() {
     dropdown.id = 'profileDropdown';
     
     // Define role labels
-    const roleText = currentUser.role === 'admin' ? 'ผู้ดูแลระบบ (Admin)' : 'ลูกค้า (Customer)';
+    const roleText = currentUser.role === 'admin' ? 'Administrator' : 'Customer';
     
     dropdown.innerHTML = `
         <div class="profile-header">
@@ -231,11 +231,11 @@ function initProfileDropdown() {
         </div>
         <div class="dropdown-divider"></div>
         <button onclick="openEditProfileModal(event)" class="dropdown-item">
-            <span>⚙️ แก้ไขข้อมูลส่วนตัว</span>
+            <span>⚙️ Edit Profile</span>
         </button>
         <div class="dropdown-divider"></div>
         <button onclick="logout()" class="dropdown-item logout-item">
-            <span>🚪 ออกจากระบบ</span>
+            <span>🚪 Logout</span>
         </button>
     `;
     wrapper.appendChild(dropdown);
@@ -275,28 +275,28 @@ function initProfileDropdown() {
         
         modalOverlay.innerHTML = `
             <div class="modal" style="max-width: 450px;">
-                <h3 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-primary); text-align: center;">แก้ไขข้อมูลส่วนตัว</h3>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem; text-align: center;">แก้ไขข้อมูลบัญชีผู้ใช้ของคุณ</p>
+                <h3 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-primary); text-align: center;">Edit Profile</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem; text-align: center;">Update your account information</p>
                 
                 <form id="editProfileForm">
                     <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                         <div>
-                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">อีเมล (ไม่สามารถเปลี่ยนได้)</label>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Email (Cannot be changed)</label>
                             <input type="text" id="editProfileEmail" class="form-control" style="background: var(--bg-light); cursor: not-allowed; width: 100%; border: 1px solid var(--border-light); border-radius: var(--radius-xs); padding: 10px 14px; font-size: 0.9rem;" readonly>
                         </div>
                         
                         <!-- Avatar Picker -->
                         <div>
-                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">รูปภาพโปรไฟล์</label>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">Profile Picture</label>
                             
                             <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 12px; padding: 10px; background: var(--bg-light); border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
                                 <img id="editProfileAvatarPreview" src="" style="width: 54px; height: 54px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover;" alt="Preview">
                                 <div style="display: flex; flex-direction: column; gap: 6px;">
                                     <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem; cursor: pointer; color: var(--text-primary); font-weight: 600;">
-                                        <input type="radio" name="avatarType" value="default" checked id="avatarTypeDefault"> เลือกการ์ตูน Avatar
+                                        <input type="radio" name="avatarType" value="default" checked id="avatarTypeDefault"> Choose Cartoon Avatar
                                     </label>
                                     <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem; cursor: pointer; color: var(--text-primary); font-weight: 600;">
-                                        <input type="radio" name="avatarType" value="custom" id="avatarTypeCustom"> ใช้รูปภาพของตัวเอง
+                                        <input type="radio" name="avatarType" value="custom" id="avatarTypeCustom"> Upload Custom Image
                                     </label>
                                 </div>
                             </div>
@@ -311,27 +311,27 @@ function initProfileDropdown() {
                             <!-- Custom Image Upload input -->
                             <div id="customAvatarSection" style="display: none; margin-bottom: 12px;">
                                 <input type="file" id="customAvatarFile" accept="image/*" class="form-control" style="font-size: 0.82rem; padding: 8px 12px; width: 100%; border: 1px solid var(--border-light); border-radius: var(--radius-xs); background: var(--bg-card); color: var(--text-primary);">
-                                <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">รองรับไฟล์รูปภาพทั่วไป ขนาดไม่เกิน 5MB</p>
+                                <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Supports JPG, PNG, WEBP up to 5MB</p>
                             </div>
                         </div>
 
                         <div>
-                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">ชื่อ-นามสกุล</label>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Full Name</label>
                             <input type="text" id="editProfileName" class="form-control" style="width: 100%; border: 1px solid var(--border-light); border-radius: var(--radius-xs); padding: 10px 14px; font-size: 0.9rem;" required>
                         </div>
                         <div>
-                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">เบอร์โทรศัพท์</label>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Phone Number</label>
                             <input type="text" id="editProfilePhone" class="form-control" style="width: 100%; border: 1px solid var(--border-light); border-radius: var(--radius-xs); padding: 10px 14px; font-size: 0.9rem;">
                         </div>
                         <div>
-                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">รหัสผ่านใหม่ (หากไม่ต้องการเปลี่ยนให้เว้นว่างไว้)</label>
-                            <input type="password" id="editProfilePassword" class="form-control" placeholder="ป้อนรหัสผ่านใหม่ที่ต้องการเปลี่ยน" style="width: 100%; border: 1px solid var(--border-light); border-radius: var(--radius-xs); padding: 10px 14px; font-size: 0.9rem;">
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">New Password (Leave blank to keep current)</label>
+                            <input type="password" id="editProfilePassword" class="form-control" placeholder="Enter new password" style="width: 100%; border: 1px solid var(--border-light); border-radius: var(--radius-xs); padding: 10px 14px; font-size: 0.9rem;">
                         </div>
                     </div>
                     
                     <div class="modal-actions" style="margin-top: 24px;">
-                        <button type="button" id="closeEditProfileBtn" class="btn btn-secondary" style="border: 1px solid var(--border-light); padding: 8px 16px; border-radius: var(--radius-xs); background: none; color: var(--text-secondary); cursor: pointer;">ยกเลิก</button>
-                        <button type="submit" class="btn btn-primary" style="background: var(--primary); border: none; padding: 8px 16px; border-radius: var(--radius-xs); color: #fff; font-weight: 600; cursor: pointer;">บันทึกข้อมูล</button>
+                        <button type="button" id="closeEditProfileBtn" class="btn btn-secondary" style="border: 1px solid var(--border-light); padding: 8px 16px; border-radius: var(--radius-xs); background: none; color: var(--text-secondary); cursor: pointer;">Cancel</button>
+                        <button type="submit" class="btn btn-primary" style="background: var(--primary); border: none; padding: 8px 16px; border-radius: var(--radius-xs); color: #fff; font-weight: 600; cursor: pointer;">Save Changes</button>
                     </div>
                 </form>
             </div>
@@ -356,7 +356,7 @@ function initProfileDropdown() {
             if (!file) return;
 
             if (file.size > 5 * 1024 * 1024) {
-                showGlobalToast('ขนาดรูปภาพต้องไม่เกิน 5MB', 'error');
+                showGlobalToast('Image size must not exceed 5MB', 'error');
                 event.target.value = '';
                 return;
             }
@@ -513,7 +513,7 @@ async function saveProfileChanges(e) {
     const submitBtn = document.querySelector('#editProfileForm button[type="submit"]');
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
-    submitBtn.textContent = 'กำลังบันทึก...';
+    submitBtn.textContent = 'Saving...';
 
     try {
         const response = await fetch('/api/users/profile', {
@@ -529,7 +529,7 @@ async function saveProfileChanges(e) {
             // Update local storage user session
             localStorage.setItem('solar_user', JSON.stringify(result.user));
 
-            showGlobalToast('แก้ไขข้อมูลส่วนตัวสำเร็จแล้ว', 'success');
+            showGlobalToast('Profile updated successfully', 'success');
             closeEditProfileModal();
 
             // Refresh the header display instantly!
@@ -558,11 +558,11 @@ async function saveProfileChanges(e) {
                 userNameEl.textContent = result.user.name;
             }
         } else {
-            showGlobalToast(result.message || 'เกิดข้อผิดพลาด', 'error');
+            showGlobalToast(result.message || 'An error occurred', 'error');
         }
     } catch (err) {
         console.error('Save profile changes error:', err);
-        showGlobalToast('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error');
+        showGlobalToast('Unable to connect to the server', 'error');
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;

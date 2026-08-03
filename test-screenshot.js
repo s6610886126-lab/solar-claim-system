@@ -17,14 +17,33 @@ if (!fs.existsSync(ARTIFACTS_DIR)) {
 async function runScreenshotTest() {
     console.log('🌟 STARTING VISUAL CAPTURE AND TESTING 🌟');
     
-    // 1. Fetch a claim from Supabase
-    const { data: claims, error } = await supabase.from('claims').select('id, claim_number').limit(1);
-    if (error || !claims || claims.length === 0) {
-        console.error('❌ Failed to fetch claim from Supabase:', error);
+    // 1. Fetch a claim from Supabase or fallback to local claims.json
+    let claimId;
+    let claimNumber;
+    try {
+        const { data: claims, error } = await supabase.from('claims').select('id, claim_number').limit(1);
+        if (error || !claims || claims.length === 0) {
+            throw new Error(error ? error.message : 'No claims found');
+        }
+        claimId = claims[0].id;
+        claimNumber = claims[0].claim_number;
+    } catch (e) {
+        console.warn('⚠️ Supabase connection failed. Trying local claims.json fallback...');
+        const DATA_FILE = path.join(__dirname, 'data', 'claims.json');
+        if (fs.existsSync(DATA_FILE)) {
+            const fileData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+            if (fileData.claims && fileData.claims.length > 0) {
+                claimId = fileData.claims[0].id;
+                claimNumber = fileData.claims[0].claimNumber || fileData.claims[0].claim_number;
+            }
+        }
+    }
+
+    if (!claimId) {
+        console.error('❌ Failed to fetch any claims for screenshot testing.');
         process.exit(1);
     }
-    const claimId = claims[0].id;
-    console.log(`📌 Found target claim for testing: ID=${claimId}, ClaimNumber=${claims[0].claim_number}`);
+    console.log(`📌 Found target claim for testing: ID=${claimId}, ClaimNumber=${claimNumber}`);
 
     // 2. Launch Puppeteer
     const browser = await puppeteer.launch({

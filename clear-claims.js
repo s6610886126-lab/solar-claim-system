@@ -24,10 +24,10 @@ async function clearClaims() {
         .neq('id', '00000000-0000-0000-0000-000000000000');
         
     if (dbError) {
-        console.error('❌ Supabase delete error:', dbError);
-        return;
+        console.warn('⚠️ Supabase delete warning (Supabase offline):', dbError.message || dbError);
+    } else {
+        console.log('   ✅ All claims successfully deleted from Supabase database.\n');
     }
-    console.log('   ✅ All claims successfully deleted from Supabase database.\n');
 
     // 2. Clear local JSON claims.json file (keeping the users array)
     if (fs.existsSync(DATA_FILE)) {
@@ -52,31 +52,31 @@ async function clearClaims() {
         wb.creator = 'Solar Claim System';
         wb.created = new Date();
 
-        const ws = wb.addWorksheet('รายการเคลม', { 
+        const ws = wb.addWorksheet('Claims List', { 
             properties: { tabColor: { argb: 'FFF59E0B' } }, 
             views: [{ state: 'frozen', ySplit: 1 }] 
         });
 
         ws.columns = [
-            { header: 'เลขที่เคลม', key: 'claimNumber', width: 18 },
-            { header: 'ชื่อลูกค้า', key: 'customerName', width: 22 },
-            { header: 'เบอร์โทร', key: 'phone', width: 16 },
-            { header: 'อีเมล', key: 'email', width: 24 },
-            { header: 'ที่อยู่', key: 'address', width: 30 },
-            { header: 'ประเภทอุปกรณ์', key: 'eqType', width: 20 },
-            { header: 'ยี่ห้อ', key: 'brand', width: 16 },
-            { header: 'รุ่น', key: 'model', width: 14 },
+            { header: 'Claim Number', key: 'claimNumber', width: 18 },
+            { header: 'Customer Name', key: 'customerName', width: 22 },
+            { header: 'Phone', key: 'phone', width: 16 },
+            { header: 'Email', key: 'email', width: 24 },
+            { header: 'Address', key: 'address', width: 30 },
+            { header: 'Equipment Type', key: 'eqType', width: 20 },
+            { header: 'Brand', key: 'brand', width: 16 },
+            { header: 'Model', key: 'model', width: 14 },
             { header: 'Serial Number', key: 'serial', width: 20 },
-            { header: 'วันที่แจ้งเคลม', key: 'purchaseDate', width: 14 },
-            { header: 'เลขประกัน', key: 'warranty', width: 16 },
-            { header: 'ระยะประกัน', key: 'warPeriod', width: 14 },
-            { header: 'หมดประกัน', key: 'warExpiry', width: 14 },
-            { header: 'ปัญหา', key: 'problem', width: 40 },
-            { header: 'ความรุนแรง', key: 'severity', width: 14 },
-            { header: 'สถานะ', key: 'status', width: 16 },
-            { header: 'วันที่แจ้ง', key: 'createdAt', width: 20 },
-            { header: 'อัปเดตล่าสุด', key: 'updatedAt', width: 20 },
-            { header: 'จำนวนรูปภาพ', key: 'imageCount', width: 14 }
+            { header: 'Purchase Date', key: 'purchaseDate', width: 14 },
+            { header: 'Warranty Number', key: 'warranty', width: 16 },
+            { header: 'Warranty Period', key: 'warPeriod', width: 14 },
+            { header: 'Warranty Expiry', key: 'warExpiry', width: 14 },
+            { header: 'Problem Description', key: 'problem', width: 40 },
+            { header: 'Severity', key: 'severity', width: 14 },
+            { header: 'Status', key: 'status', width: 16 },
+            { header: 'Created At', key: 'createdAt', width: 20 },
+            { header: 'Updated At', key: 'updatedAt', width: 20 },
+            { header: 'Image Count', key: 'imageCount', width: 14 }
         ];
 
         ws.getRow(1).eachCell(cell => {
@@ -87,20 +87,20 @@ async function clearClaims() {
         });
         ws.getRow(1).height = 28;
 
-        const ws2 = wb.addWorksheet('สรุป', { properties: { tabColor: { argb: 'FF10B981' } } });
-        ws2.columns = [{ header: 'รายการ', key: 'label', width: 25 }, { header: 'จำนวน', key: 'count', width: 12 }];
+        const ws2 = wb.addWorksheet('Summary', { properties: { tabColor: { argb: 'FF10B981' } } });
+        ws2.columns = [{ header: 'Category', key: 'label', width: 25 }, { header: 'Count', key: 'count', width: 12 }];
         ws2.getRow(1).eachCell(cell => {
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
             cell.font = { color: { argb: 'FFF59E0B' }, bold: true, size: 11 };
             cell.alignment = { vertical: 'middle', horizontal: 'center' };
         });
 
-        ws2.addRow({ label: 'เคลมทั้งหมด', count: 0 });
-        ws2.addRow({ label: 'รอดำเนินการ', count: 0 });
-        ws2.addRow({ label: 'กำลังตรวจสอบ', count: 0 });
-        ws2.addRow({ label: 'อนุมัติแล้ว', count: 0 });
-        ws2.addRow({ label: 'ไม่อนุมัติ', count: 0 });
-        ws2.addRow({ label: 'เสร็จสิ้น', count: 0 });
+        ws2.addRow({ label: 'Total Claims', count: 0 });
+        ws2.addRow({ label: 'Pending', count: 0 });
+        ws2.addRow({ label: 'Reviewing', count: 0 });
+        ws2.addRow({ label: 'Approved', count: 0 });
+        ws2.addRow({ label: 'Rejected', count: 0 });
+        ws2.addRow({ label: 'Completed', count: 0 });
 
         await wb.xlsx.writeFile(EXCEL_FILE);
         console.log('   ✅ Local "claims.xlsx" successfully reset to empty with correct styled headers.\n');

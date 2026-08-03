@@ -26,16 +26,16 @@ async function testInsert() {
         },
         warranty: {
             number: "WRT-E2E-999",
-            period: "5 ปี",
+            period: "5 years",
             expiryDate: "2029-05-01"
         },
         problem: {
-            description: "เครื่องเตือน Error Code 204",
+            description: "Inverter alerts Error Code 204",
             severity: "80",
             images: []
         },
         status: 'pending',
-        timeline: [{ status: 'pending', date: new Date().toISOString(), note: 'รับเรื่องเคลมเข้าระบบ' }],
+        timeline: [{ status: 'pending', date: new Date().toISOString(), note: 'Claim submitted successfully' }],
         notes: []
     };
 

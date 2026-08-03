@@ -20,294 +20,294 @@ const EXCEL_FILE = path.join(__dirname, 'data', 'claims.xlsx');
 // Solar Panel (JinkoSolar, Solis), Inverter (Solis), Battery (Battery Dyness, LV Topsun)
 const dummyClaims = [
     {
-        name: "นายสมชาย ดีมั่น",
+        name: "Mr. Somchai Deeman",
         phone: "0812345678",
         email: "somchai.d@gmail.com",
-        address: "45/2 หมู่ 3 ถ.วิภาวดีรังสิต แขวงตลาดบางเขน เขตหลักสี่ กรุงเทพมหานคร 10210",
+        address: "45/2 Moo 3, Vibhavadi Rangsit Rd, Laksi, Bangkok 10210",
         eqType: "Solar Panel",
         brand: "JinkoSolar",
         model: "Tiger Neo N-type",
         serial: "JK-TIGER-2026A1",
         purchaseDate: "2024-10-15",
         warrantyNum: "WRT-JK-20241015",
-        warrantyPeriod: "15 ปี",
+        warrantyPeriod: "15 years",
         warrantyExpiry: "2039-10-15",
-        problemDesc: "แผงโซล่าเซลล์จ่ายไฟไม่เต็มกำลังผลิต ในช่วงแดดจัดกำลังไฟตกลงกว่า 50% พบ hot spot เล็กๆ บนแผง",
+        problemDesc: "Solar panel is not generating full power. During peak sunlight, output drops by over 50%. A small hot spot is visible on the panel.",
         severity: "80",
         status: "approved",
         createdAt: "2026-03-01T09:30:00.000Z",
-        notes: "ดำเนินการตรวจสอบผ่านภาพถ่ายพบความบกพร่องจริง อนุมัติการเคลมแผงใหม่ทดแทน"
+        notes: "Inspected via photos and confirmed the defect. Approved replacement with a new panel."
     },
     {
-        name: "นางสาววิภาดา เลิศล้ำ",
+        name: "Ms. Wipada Lertlam",
         phone: "0898765432",
         email: "wipada.lert@outlook.com",
-        address: "12/5 ถ.พัฒนาการ แขวงสวนหลวง เขตสวนหลวง กรุงเทพมหานคร 10250",
+        address: "12/5 Phatthanakan Rd, Suan Luang, Bangkok 10250",
         eqType: "Inverter",
         brand: "Solis",
         model: "S6-GR1P5K",
         serial: "SL-INV-S6-293810",
         purchaseDate: "2025-02-10",
         warrantyNum: "WRT-SL-20250210",
-        warrantyPeriod: "5 ปี",
+        warrantyPeriod: "5 years",
         warrantyExpiry: "2030-02-10",
-        problemDesc: "ตัวอินเวอร์เตอร์จอดับสนิท ไฟสถานะทุกดวงไม่ขึ้นเลย ไม่มีกระแสไฟจ่ายเข้าระบบของบ้าน",
+        problemDesc: "Inverter screen is completely black. Status lights are all off. No electricity is being supplied to the home system.",
         severity: "50",
         status: "reviewing",
         createdAt: "2026-05-18T10:15:00.000Z",
-        notes: "ทีมช่างกำลังเตรียมเครื่องมือเข้าไปหน้างานเพื่อตรวจสอบระบบสายดินและบอร์ดควบคุมอินเวอร์เตอร์"
+        notes: "Technical team is preparing equipment to inspect the ground system and inverter control board on-site."
     },
     {
-        name: "นายกิตติศักดิ์ รุ่งเรือง",
+        name: "Mr. Kittisak Rungruang",
         phone: "0823456789",
         email: "kittisak.r@gmail.com",
-        address: "99/9 หมู่บ้านกรีนวิว ถ.บางนา-ตราด ต.บางแก้ว อ.บางพลี จ.สมุทรปราการ 10540",
+        address: "99/9 Greenview Village, Bangna-Trad Rd, Bang Phli, Samut Prakan 10540",
         eqType: "Battery",
         brand: "Battery Dyness",
         model: "Powerbox F-10.0",
         serial: "DN-PB-98471203",
         purchaseDate: "2025-11-20",
         warrantyNum: "WRT-DN-20251120",
-        warrantyPeriod: "10 ปี",
+        warrantyPeriod: "10 years",
         warrantyExpiry: "2035-11-20",
-        problemDesc: "แบตเตอรี่ชาร์จไฟไม่เข้าเลย ไฟแสดงสถานะแบตเตอรี่กะพริบเป็นสีส้มตลอดเวลา ลองรีบูตระบบแล้วไม่หาย",
+        problemDesc: "Battery is not charging at all. Status light flashes orange continuously. Reboots do not resolve the issue.",
         severity: "100",
         status: "pending",
         createdAt: "2026-05-20T14:22:00.000Z",
-        notes: "รับเรื่องเคลมเข้าระบบ รอนัดหมายวิศวกรเข้าหน้างานเพื่อตรวจเช็คระบบไฟฟ้าหลักและแบตเตอรี่"
+        notes: "Claim request received. Scheduling engineer visit to check the main electrical system and battery."
     },
     {
-        name: "นางสาวกมลวรรณ ชัยชนะ",
+        name: "Ms. Kamolwan Chaichana",
         phone: "0845678901",
         email: "kamolwan.c@hotmail.com",
-        address: "555/23 คอนโดไฮไรส์ ถ.สุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110",
+        address: "555/23 High-Rise Condo, Sukhumvit Rd, Khlong Toei, Bangkok 10110",
         eqType: "Solar Panel",
         brand: "Solis",
         model: "Solis Panel 440W",
         serial: "SL-PANEL-440-0012",
         purchaseDate: "2024-01-18",
         warrantyNum: "WRT-SLP-20240118",
-        warrantyPeriod: "12 ปี",
+        warrantyPeriod: "12 years",
         warrantyExpiry: "2036-01-18",
-        problemDesc: "เกิดคราบสนิมบริเวณขอบอลูมิเนียมของแผงโซล่าเซลล์ ประสิทธิภาพการผลิตไฟลดลงเล็กน้อย",
+        problemDesc: "Rust spots formed around the aluminum frame of the solar panel. Power generation efficiency dropped slightly.",
         severity: "10",
         status: "completed",
         createdAt: "2026-04-10T08:00:00.000Z",
-        notes: "ทำการส่งเจ้าหน้าที่เข้าทำความสะอาดและตรวจสอบขอบแผงโซล่าเซลล์เรียบร้อย ปรับแต่งการยึดให้แข็งแรงขึ้น"
+        notes: "Sent technician to clean and inspect the panel frame. Secured the mounting structure."
     },
     {
-        name: "นายประสิทธิ์ รักการดี",
+        name: "Mr. Prasit Rakkarndee",
         phone: "0856789012",
         email: "prasit.rak@gmail.com",
-        address: "88/1 ถ.มิตรภาพ ต.ในเมือง อ.เมือง จ.ขอนแก่น 40000",
+        address: "88/1 Mittraphap Rd, Mueang, Khon Kaen 40000",
         eqType: "Battery",
         brand: "LV Topsun",
         model: "Topsun LV 48V 100Ah",
         serial: "TS-BATT-100-9928",
         purchaseDate: "2024-05-05",
         warrantyNum: "WRT-TSB-20240505",
-        warrantyPeriod: "5 ปี",
+        warrantyPeriod: "5 years",
         warrantyExpiry: "2029-05-05",
-        problemDesc: "ขณะใช้งานช่วงค่ำ ตัวแบตเตอรี่ร้อนจัดจนระบบ Safety ตัดการทำงานและส่งกลิ่นไหม้",
+        problemDesc: "During evening usage, the battery overheated. Safety system cut off operation and a burning smell was detected.",
         severity: "80",
         status: "rejected",
         createdAt: "2026-04-15T11:45:00.000Z",
-        notes: "ปฏิเสธการเคลม: เนื่องจากตรวจพบรอยน้ำซึมเข้าด้านล่างเครื่องเนื่องจากลูกค้าติดตั้งในพื้นที่โล่งไม่มีหลังคาคลุม"
+        notes: "Rejected claim: Water ingress detected at the bottom of the device due to installation in an open area without a roof."
     },
     {
-        name: "นายอภิชาติ แก้วมณี",
+        name: "Mr. Apichart Kaewmanee",
         phone: "0867890123",
         email: "apichart.k@yahoo.com",
-        address: "214/8 ถ.ช้างคลาน ต.ช้างคลาน อ.เมือง จ.เชียงใหม่ 50100",
+        address: "214/8 Chang Klan Rd, Chang Klan, Mueang, Chiang Mai 50100",
         eqType: "Inverter",
         brand: "Solis",
         model: "S5-GR3P10K",
         serial: "SL-INV-3P10K-9028",
         purchaseDate: "2024-06-30",
         warrantyNum: "WRT-SLI-20240630",
-        warrantyPeriod: "5 ปี",
+        warrantyPeriod: "5 years",
         warrantyExpiry: "2029-06-30",
-        problemDesc: "เครื่องขึ้นโค้ดสัญญาณเตือนความบกพร่องของฮาร์ดแวร์ภายใน ไม่สามารถผลิตกระแสไฟ AC ได้",
+        problemDesc: "Inverter displays an internal hardware fault code and cannot generate AC power.",
         severity: "100",
         status: "approved",
         createdAt: "2026-03-25T13:20:00.000Z",
-        notes: "ตรวจสอบแล้วพบปัญหาที่บอร์ดแปลงไฟอินเวอร์เตอร์จริง อนุมัติเปลี่ยนเครื่องใหม่ให้แก่ลูกค้า"
+        notes: "Verified internal power board defect. Approved replacement inverter for customer."
     },
     {
-        name: "นางสาวศิริพร บุญเหลือ",
+        name: "Ms. Siriporn Boonlue",
         phone: "0878901234",
         email: "siriporn.b@gmail.com",
-        address: "73 ถ.รอบเมือง ต.หมากแข้ง อ.เมือง จ.อุดรธานี 41000",
+        address: "73 Rob Mueang Rd, Mak Khaeng, Mueang, Udon Thani 41000",
         eqType: "Solar Panel",
         brand: "JinkoSolar",
         model: "Tiger Pro",
         serial: "JK-TIGERPRO-8812",
         purchaseDate: "2024-08-12",
         warrantyNum: "WRT-JKP-20240812",
-        warrantyPeriod: "15 ปี",
+        warrantyPeriod: "15 years",
         warrantyExpiry: "2039-08-12",
-        problemDesc: "กระจกเทมเปอร์หน้าแผงโซล่าเซลล์เกิดรอยร้าวเป็นใยแมงมุม คาดว่าเกิดจากความร้อนสะสมและการหดตัว",
+        problemDesc: "Tempered glass on solar panel has spiderweb cracks, likely due to heat accumulation and contraction.",
         severity: "50",
         status: "completed",
         createdAt: "2026-05-02T16:10:00.000Z",
-        notes: "ดำเนินการเปลี่ยนแผงโซล่าเซลล์แผงใหม่ทดแทนแผงเดิมที่แตกร้าวเรียบร้อยแล้ว ระบบกลับมาผลิตไฟได้ปกติ"
+        notes: "Successfully replaced the cracked solar panel. System power output has returned to normal."
     },
     {
-        name: "นายธีรเดช สุขสวัสดิ์",
+        name: "Mr. Teeradech Suksawat",
         phone: "0889012345",
         email: "teeradech.s@gmail.com",
-        address: "318/14 ถ.พระราม 3 แขวงบางโพงพาง เขตยานนาวา กรุงเทพมหานคร 10120",
+        address: "318/14 Rama 3 Rd, Yan Nawa, Bangkok 10120",
         eqType: "Battery",
         brand: "Battery Dyness",
         model: "Dyness B4850",
         serial: "DN-B4850-202409",
         purchaseDate: "2025-03-15",
         warrantyNum: "WRT-DN-20250315",
-        warrantyPeriod: "10 ปี",
+        warrantyPeriod: "10 years",
         warrantyExpiry: "2035-03-15",
-        problemDesc: "ค่าความจุแบตเตอรี่ลดลงอย่างรวดเร็ว ชาร์จเต็มแต่จ่ายไฟได้เพียง 10 นาทีระบบก็ตัดการทำงานทันที",
+        problemDesc: "Battery capacity drops rapidly. Fully charged battery only discharges for 10 minutes before system cuts off.",
         severity: "50",
         status: "pending",
         createdAt: "2026-05-21T02:00:00.000Z",
-        notes: "รับเรื่องเข้าระบบ อยู่ระหว่างวิเคราะห์ประวัติการใช้งานและการชาร์จผ่านทาง Cloud Logger"
+        notes: "Claim request received. Analyzing usage and charge history logs via Cloud Logger."
     },
     {
-        name: "นางนงลักษณ์ สมบูรณ์",
+        name: "Mrs. Nonglak Somboon",
         phone: "0890123456",
         email: "nonglak.s@outlook.com",
-        address: "105/4 ถ.เพชรเกษม ต.หาดใหญ่ อ.หาดใหญ่ จ.สงขลา 90110",
+        address: "105/4 Phetkasem Rd, Hat Yai, Songkhla 90110",
         eqType: "Inverter",
         brand: "Solis",
         model: "S5-GR1P5K",
         serial: "SL-S5-GR1P-88219",
         purchaseDate: "2024-12-01",
         warrantyNum: "WRT-SLS-20241201",
-        warrantyPeriod: "5 ปี",
+        warrantyPeriod: "5 years",
         warrantyExpiry: "2029-12-01",
-        problemDesc: "พัดลมระบายความร้อนของเครื่องส่งเสียงดังแหลมและสั่นรุนแรงขณะทำงานแดดจัด คาดว่าตลับลูกปืนภายในชำรุด",
+        problemDesc: "Cooling fan makes a high-pitched noise and vibrates heavily under high sunlight. Defective internal bearings suspected.",
         severity: "80",
         status: "reviewing",
         createdAt: "2026-05-19T09:40:00.000Z",
-        notes: "ทีมแอดมินประสานงานเตรียมจัดส่งอะไหล่ชุดพัดลมระบายความร้อนของ Solis ตรงรุ่นเพื่อเข้าไปเปลี่ยนทดแทน"
+        notes: "Admin team is coordinating delivery of a replacement Solis cooling fan unit to install."
     },
     {
-        name: "นายวรวุฒิ อุดมทรัพย์",
+        name: "Mr. Worawut Udomsap",
         phone: "0801234567",
         email: "worawut.u@gmail.com",
-        address: "41 ถ.ราชดำเนิน ต.ศรีภูมิ อ.เมือง จ.เชียงใหม่ 50200",
+        address: "41 Ratchadamnoen Rd, Sri Phum, Mueang, Chiang Mai 50200",
         eqType: "Solar Panel",
         brand: "Solis",
         model: "Solis Panel 550W",
         serial: "SLP-550W-982103",
         purchaseDate: "2024-04-10",
         warrantyNum: "WRT-SLP-20240410",
-        warrantyPeriod: "12 ปี",
+        warrantyPeriod: "12 years",
         warrantyExpiry: "2036-04-10",
-        problemDesc: "ประสิทธิภาพการผลิตไฟฟ้าของแผงต่ำผิดปกติ เทียบกับแผงข้างๆ ในสตริงเดียวกันลดลงไปกว่า 40%",
+        problemDesc: "Solar panel power generation efficiency is abnormally low. Output is 40% lower compared to adjacent panels in the same string.",
         severity: "50",
         status: "approved",
         createdAt: "2026-03-12T15:30:00.000Z",
-        notes: "ตรวจสอบข้อมูลการผลิตไฟฟ้าและวัดระดับแรงดันแผงเดี่ยวพบความผิดปกติจริง อนุมัติเปลี่ยนแผงให้ลูกค้า"
+        notes: "Analyzed power generation data and measured single-panel voltage, confirming fault. Approved replacement panel."
     },
     {
-        name: "นายรุ่งโรจน์ สว่างจิต",
+        name: "Mr. Rungroj Sawangjit",
         phone: "0811122334",
         email: "rungroj.s@gmail.com",
-        address: "234/11 หมู่ 5 ต.ท่าทราย อ.เมือง จ.สมุทรสาคร 74000",
+        address: "234/11 Moo 5, Tha Sai, Mueang, Samut Sakhon 74000",
         eqType: "Battery",
         brand: "LV Topsun",
         model: "Topsun LV 48V 200Ah",
         serial: "TS-LV200-9921",
         purchaseDate: "2024-01-20",
         warrantyNum: "WRT-TS-20240120",
-        warrantyPeriod: "5 ปี",
+        warrantyPeriod: "5 years",
         warrantyExpiry: "2029-01-20",
-        problemDesc: "ตัวแบตเตอรี่สื่อสารกับอินเวอร์เตอร์ไม่ได้ ขึ้นไฟสีส้มกะพริบเตือน Communication Error",
+        problemDesc: "Battery communication with the inverter failed. Orange indicator light flashes signaling a Communication Error.",
         severity: "80",
         status: "completed",
         createdAt: "2026-02-15T08:30:00.000Z",
-        notes: "ช่างเทคนิคเดินทางเข้าตรวจสอบและทำการเปลี่ยนสายสัญญาณสื่อสาร Modbus เส้นใหม่ ระบบสามารถใช้งานได้ปกติ"
+        notes: "Technician visited and replaced the Modbus communication cable. System is now fully functional."
     },
     {
-        name: "นางสาวชลลดา สุขใจ",
+        name: "Ms. Chonlada Sukjai",
         phone: "0822233445",
         email: "chonlada.s@hotmail.com",
-        address: "68/9 ถ.สุขสวัสดิ์ อ.พระประแดง จ.สมุทรปราการ 10130",
+        address: "68/9 Suksawat Rd, Phra Pradaeng, Samut Prakan 10130",
         eqType: "Solar Panel",
         brand: "JinkoSolar",
         model: "JKM-440N",
         serial: "JK-440N-202408B",
         purchaseDate: "2024-09-05",
         warrantyNum: "WRT-JK-20240905",
-        warrantyPeriod: "15 ปี",
+        warrantyPeriod: "15 years",
         warrantyExpiry: "2039-09-05",
-        problemDesc: "เกิดรอยขุ่นและฝ้าขาวใต้ชั้นกระจกแผงโซล่าเซลล์ ประสิทธิภาพลดลงในช่วงบ่ายเนื่องจากความร้อนสูง",
+        problemDesc: "Cloudiness and white haze formed under the solar panel glass. Efficiency drops significantly in the afternoon due to high temperature.",
         severity: "10",
         status: "pending",
         createdAt: "2026-05-21T04:10:00.000Z",
-        notes: "ลงทะเบียนรับคำขอเคลมเรียบร้อย รอนัดหมายส่งเจ้าหน้าที่ไปวัดค่ากระแสไฟฟ้าที่แผงจริงหน้างาน"
+        notes: "Claim request registered. Scheduling site visit to measure electrical current at the panel."
     },
     {
-        name: "นายธนพล มั่งคั่ง",
+        name: "Mr. Thanapol Mangkang",
         phone: "0833344556",
         email: "thanapol.m@gmail.com",
-        address: "123 ถ.รามคำแหง แขวงหัวหมาก เขตบางกะปิ กรุงเทพมหานคร 10240",
+        address: "123 Ramkhamhaeng Rd, Hua Mak, Bang Kapi, Bangkok 10240",
         eqType: "Inverter",
         brand: "Solis",
         model: "S6-GR1P5K",
         serial: "SL-S6-0029381",
         purchaseDate: "2025-07-12",
         warrantyNum: "WRT-SLI-20250712",
-        warrantyPeriod: "5 ปี",
+        warrantyPeriod: "5 years",
         warrantyExpiry: "2030-07-12",
-        problemDesc: "เครื่องหยุดทำงานและฟ้องโค้ด Grid Overvoltage บ่อยครั้งมาก ไม่สลับเข้าสู่โหมดจ่ายกระแสไฟปกติ",
+        problemDesc: "Inverter halts and displays Grid Overvoltage error frequently. Fails to switch to normal power export mode.",
         severity: "100",
         status: "rejected",
         createdAt: "2026-05-17T11:00:00.000Z",
-        notes: "ปฏิเสธการเคลม: การแจ้งเตือนเกิดจากระบบไฟฟ้าภายนอกอาคารของการไฟฟ้ามีแรงดันเกินขีดจำกัด ไม่ใช่ความบกพร่องของเครื่องอินเวอร์เตอร์"
+        notes: "Rejected claim: Warning is caused by external utility grid voltage limit exceed, not an inverter device fault."
     },
     {
-        name: "นางสาวพัชราภรณ์ แสนทวี",
+        name: "Ms. Patcharaporn Saentawee",
         phone: "0844455667",
         email: "patchara.s@outlook.com",
-        address: "47 หมู่ 2 ต.แสนสุข อ.เมืองชลบุรี จ.ชลบุรี 20130",
+        address: "47 Moo 2, Saen Suk, Mueang, Chon Buri 20130",
         eqType: "Battery",
         brand: "Battery Dyness",
         model: "Dyness A48100",
         serial: "DN-A48100-2938",
         purchaseDate: "2024-11-11",
         warrantyNum: "WRT-DN-20241111",
-        warrantyPeriod: "10 ปี",
+        warrantyPeriod: "10 years",
         warrantyExpiry: "2034-11-11",
-        problemDesc: "แบตเตอรี่หยุดทำงานชั่วคราวและแจ้งเตือนอุณหภูมิสูงผิดปกติขณะคายประจุสำรองไฟช่วงกลางคืน",
+        problemDesc: "Battery shuts down temporarily and triggers a high temperature alert during nighttime discharge.",
         severity: "50",
         status: "reviewing",
         createdAt: "2026-04-05T13:40:00.000Z",
-        notes: "ทีมเทคนิคประสานงานขอข้อมูลการบันทึกอุณหภูมิห้องติดตั้งเพื่อเช็คสภาพแวดล้อมและการระบายอากาศเบื้องต้น"
+        notes: "Technical team is requesting temperature logs of the installation room to verify environment conditions."
     },
     {
-        name: "นายทวีป มีสุข",
+        name: "Mr. Taveep Meesook",
         phone: "0855566778",
         email: "taveep.m@gmail.com",
-        address: "99 หมู่ 1 ต.บ้านใหม่ อ.เมืองปทุมธานี จ.ปทุมธานี 12000",
+        address: "99 Moo 1, Ban Mai, Mueang Pathum Thani, Pathum Thani 12000",
         eqType: "Solar Panel",
         brand: "JinkoSolar",
         model: "JKM-400M",
         serial: "JK-400M-202411",
         purchaseDate: "2024-01-15",
         warrantyNum: "WRT-JK-20240115",
-        warrantyPeriod: "15 ปี",
+        warrantyPeriod: "15 years",
         warrantyExpiry: "2039-01-15",
-        problemDesc: "มีประกายไฟที่ขั้วเชื่อมต่อสายหลังแผงและขั้วต่อเกิดความร้อนหลอมละลายจนสายขาดชำรุด",
+        problemDesc: "Sparking occurred at the junction connector behind the panel, overheating and melting the terminal.",
         severity: "80",
         status: "approved",
         createdAt: "2026-03-20T10:00:00.000Z",
-        notes: "ตรวจสอบแล้วพบปัญหาที่ขั้ว Junction Box หลวมมาจากโรงงาน อนุมัติเปลี่ยนแผงโซล่าเซลล์ชิ้นใหม่ให้แก่ลูกค้า"
+        notes: "Inspected and found a loose Junction Box terminal from factory. Approved replacement with a new solar panel."
     }
 ];
 
 // Helper: Sync to Excel function written inline so we don't depend on server.js imports
-const statusLabelsExcel = { pending: 'รอดำเนินการ', reviewing: 'กำลังตรวจสอบ', approved: 'อนุมัติแล้ว', rejected: 'ไม่อนุมัติ', completed: 'เสร็จสิ้น' };
+const statusLabelsExcel = { pending: 'Pending', reviewing: 'Reviewing', approved: 'Approved', rejected: 'Rejected', completed: 'Completed' };
 const sevLabelsExcel = { 10: '10%', 50: '50%', 80: '80%', 100: '100%' };
 
 async function syncToExcelLocal(claims) {
@@ -315,21 +315,26 @@ async function syncToExcelLocal(claims) {
     wb.creator = 'Solar Claim System';
     wb.created = new Date();
 
-    const ws = wb.addWorksheet('รายการเคลม', { properties: { tabColor: { argb: 'FFF59E0B' } }, views: [{ state: 'frozen', ySplit: 1 }] });
+    const ws = wb.addWorksheet('Claims List', { properties: { tabColor: { argb: 'FFF59E0B' } }, views: [{ state: 'frozen', ySplit: 1 }] });
     ws.columns = [
-        { header: 'เลขที่เคลม', key: 'claimNumber', width: 18 }, { header: 'ชื่อลูกค้า', key: 'customerName', width: 22 },
-        { header: 'เบอร์โทร', key: 'phone', width: 16 }, { header: 'อีเมล', key: 'email', width: 24 },
-        { header: 'ที่อยู่', key: 'address', width: 30 }, { header: 'ประเภทอุปกรณ์', key: 'eqType', width: 20 },
-        { header: 'ยี่ห้อ', key: 'brand', width: 16 }, { header: 'รุ่น', key: 'model', width: 14 },
-        { header: 'Serial Number', key: 'serial', width: 20 }, { header: 'วันที่แจ้งเคลม', key: 'purchaseDate', width: 14 },
-        { header: 'เลขประกัน', key: 'warranty', width: 16 }, { header: 'ระยะประกัน', key: 'warPeriod', width: 14 },
-        { header: 'หมดประกัน', key: 'warExpiry', width: 14 }, { header: 'ปัญหา', key: 'problem', width: 40 },
-        { header: 'ความรุนแรง', key: 'severity', width: 14 }, { header: 'สถานะ', key: 'status', width: 16 },
-        { header: 'วันที่แจ้ง', key: 'createdAt', width: 20 }, { header: 'อัปเดตล่าสุด', key: 'updatedAt', width: 20 },
-        { header: 'จำนวนรูปภาพ', key: 'imageCount', width: 14 },
+        { header: 'Claim Number', key: 'claimNumber', width: 18 }, { header: 'Customer Name', key: 'customerName', width: 22 },
+        { header: 'Phone', key: 'phone', width: 16 }, { header: 'Email', key: 'email', width: 24 },
+        { header: 'Address', key: 'address', width: 30 }, { header: 'Equipment Type', key: 'eqType', width: 20 },
+        { header: 'Brand', key: 'brand', width: 16 }, { header: 'Model', key: 'model', width: 14 },
+        { header: 'Serial Number', key: 'serial', width: 20 }, { header: 'Purchase Date', key: 'purchaseDate', width: 14 },
+        { header: 'Warranty Number', key: 'warranty', width: 16 }, { header: 'Warranty Period', key: 'warPeriod', width: 14 },
+        { header: 'Warranty Expiry', key: 'warExpiry', width: 14 }, { header: 'Problem Description', key: 'problem', width: 40 },
+        { header: 'Severity', key: 'severity', width: 14 }, { header: 'Status', key: 'status', width: 16 },
+        { header: 'Created At', key: 'createdAt', width: 20 }, { header: 'Updated At', key: 'updatedAt', width: 20 },
+        { header: 'Image Count', key: 'imageCount', width: 14 },
     ];
 
-    ws.getRow(1).eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; cell.font = { color: { argb: 'FFF59E0B' }, bold: true, size: 11 }; cell.alignment = { vertical: 'middle', horizontal: 'center' }; cell.border = { bottom: { style: 'medium', color: { argb: 'FFF59E0B' } } }; });
+    ws.getRow(1).eachCell(cell => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+        cell.font = { color: { argb: 'FFF59E0B' }, bold: true, size: 11 };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { bottom: { style: 'medium', color: { argb: 'FFF59E0B' } } };
+    });
     ws.getRow(1).height = 28;
 
     const statusColors = { pending: 'FFFBBF24', reviewing: 'FF3B82F6', approved: 'FF10B981', rejected: 'FFEF4444', completed: 'FF8B5CF6' };
@@ -351,8 +356,8 @@ async function syncToExcelLocal(claims) {
             problem: c.problem?.description || '',
             severity: sevLabelsExcel[c.problem?.severity] || c.problem?.severity || '',
             status: statusLabelsExcel[c.status] || c.status,
-            createdAt: new Date(c.created_at).toLocaleString('th-TH'),
-            updatedAt: new Date(c.updated_at).toLocaleString('th-TH'),
+            createdAt: new Date(c.created_at).toLocaleString('en-US'),
+            updatedAt: new Date(c.updated_at).toLocaleString('en-US'),
             imageCount: c.problem?.images?.length || 0
         });
 
@@ -377,22 +382,22 @@ async function syncToExcelLocal(claims) {
 
     ws.autoFilter = { from: 'A1', to: `S${claims.length + 1}` };
 
-    const ws2 = wb.addWorksheet('สรุป', { properties: { tabColor: { argb: 'FF10B981' } } });
-    ws2.columns = [{ header: 'รายการ', key: 'label', width: 25 }, { header: 'จำนวน', key: 'count', width: 12 }];
+    const ws2 = wb.addWorksheet('Summary', { properties: { tabColor: { argb: 'FF10B981' } } });
+    ws2.columns = [{ header: 'Category', key: 'label', width: 25 }, { header: 'Count', key: 'count', width: 12 }];
     ws2.getRow(1).eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; cell.font = { color: { argb: 'FFF59E0B' }, bold: true, size: 11 }; cell.alignment = { vertical: 'middle', horizontal: 'center' }; });
 
-    ws2.addRow({ label: 'เคลมทั้งหมด', count: claims.length });
-    ws2.addRow({ label: 'รอดำเนินการ', count: claims.filter(c => c.status === 'pending').length });
-    ws2.addRow({ label: 'กำลังตรวจสอบ', count: claims.filter(c => c.status === 'reviewing').length });
-    ws2.addRow({ label: 'อนุมัติแล้ว', count: claims.filter(c => c.status === 'approved').length });
-    ws2.addRow({ label: 'ไม่อนุมัติ', count: claims.filter(c => c.status === 'rejected').length });
-    ws2.addRow({ label: 'เสร็จสิ้น', count: claims.filter(c => c.status === 'completed').length });
+    ws2.addRow({ label: 'Total Claims', count: claims.length });
+    ws2.addRow({ label: 'Pending', count: claims.filter(c => c.status === 'pending').length });
+    ws2.addRow({ label: 'Reviewing', count: claims.filter(c => c.status === 'reviewing').length });
+    ws2.addRow({ label: 'Approved', count: claims.filter(c => c.status === 'approved').length });
+    ws2.addRow({ label: 'Rejected', count: claims.filter(c => c.status === 'rejected').length });
+    ws2.addRow({ label: 'Completed', count: claims.filter(c => c.status === 'completed').length });
     ws2.addRow({});
-    ws2.addRow({ label: '--- ตามประเภทอุปกรณ์ ---', count: '' });
+    ws2.addRow({ label: '--- By Equipment Type ---', count: '' });
 
     const eqCount = {};
     claims.forEach(c => {
-        const type = c.equipment?.type || 'อื่นๆ';
+        const type = c.equipment?.type || 'Other';
         eqCount[type] = (eqCount[type] || 0) + 1;
     });
     Object.entries(eqCount).forEach(([k, v]) => ws2.addRow({ label: k, count: v }));
@@ -412,7 +417,7 @@ async function syncToExcelLocal(claims) {
 }
 
 async function insertDummyData() {
-    console.log('⚡ Starting dummy data generation script (2 claims)...');
+    console.log('⚡ Starting dummy data generation script (10 claims)...');
 
     // 1. Delete all existing claims from Supabase
     console.log('🗑️ Deleting all records from Supabase "claims" table first...');
@@ -431,31 +436,31 @@ async function insertDummyData() {
     const claimsToInsert = [];
     let startClaimNum = 2026001;
 
-    for (let i = 0; i < Math.min(5, dummyClaims.length); i++) {
+    for (let i = 0; i < Math.min(10, dummyClaims.length); i++) {
         const c = dummyClaims[i];
         
         // Construct timeline
         const timeline = [
-            { status: 'pending', date: c.createdAt, note: 'รับเรื่องเคลมเข้าระบบเรียบร้อย' }
+            { status: 'pending', date: c.createdAt, note: 'Claim submitted successfully' }
         ];
 
         if (c.status !== 'pending') {
             const reviewingDate = new Date(new Date(c.createdAt).getTime() + 1000 * 60 * 60 * 24).toISOString(); // +1 day
-            timeline.push({ status: 'reviewing', date: reviewingDate, note: 'ทีมช่างเทคนิคทำการตรวจสอบรายละเอียดเบื้องต้น' });
+            timeline.push({ status: 'reviewing', date: reviewingDate, note: 'Technical team is conducting initial review' });
 
             if (c.status === 'approved' || c.status === 'rejected') {
                 const finalDate = new Date(new Date(reviewingDate).getTime() + 1000 * 60 * 60 * 24 * 2).toISOString(); // +2 days
                 timeline.push({
                     status: c.status,
                     date: finalDate,
-                    note: c.status === 'approved' ? `อนุมัติคำขอ: ${c.notes}` : `ปฏิเสธคำขอ: ${c.notes}`
+                    note: c.status === 'approved' ? `Claim approved: ${c.notes}` : `Claim rejected: ${c.notes}`
                 });
             } else if (c.status === 'completed') {
                 const approvedDate = new Date(new Date(reviewingDate).getTime() + 1000 * 60 * 60 * 24 * 2).toISOString(); // +2 days
-                timeline.push({ status: 'approved', date: approvedDate, note: 'อนุมัติการเคลมสินค้าและจัดเตรียมอุปกรณ์ชิ้นใหม่' });
+                timeline.push({ status: 'approved', date: approvedDate, note: 'Claim approved and replacement unit is being prepared' });
 
                 const completedDate = new Date(new Date(approvedDate).getTime() + 1000 * 60 * 60 * 24 * 3).toISOString(); // +3 days
-                timeline.push({ status: 'completed', date: completedDate, note: `ปิดงานเคลม: ${c.notes}` });
+                timeline.push({ status: 'completed', date: completedDate, note: `Claim completed: ${c.notes}` });
             }
         }
 
@@ -464,7 +469,7 @@ async function insertDummyData() {
             noteArray.push({
                 id: uuidv4(),
                 text: c.notes,
-                author: 'Admin System',
+                author: 'System Admin',
                 createdAt: c.createdAt
             });
         }
@@ -508,41 +513,41 @@ async function insertDummyData() {
     const { data, error } = await supabase.from('claims').insert(claimsToInsert).select();
 
     if (error) {
-        console.error('❌ Supabase Insert Error:', error);
+        console.warn('⚠️ Supabase Insert failed (Supabase offline):', error.message || error);
     } else {
         console.log(`🎉 Supabase Insert Success! Successfully inserted ${data.length} records.`);
-        
-        // 3. Sync to local Excel file
-        console.log('🔄 Syncing local Excel cache claims...');
-        await syncToExcelLocal(claimsToInsert);
-        
-        // 4. Backup to claims.json if it exists
-        const DATA_FILE = path.join(__dirname, 'data', 'claims.json');
-        if (fs.existsSync(DATA_FILE)) {
-            try {
-                const fileData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-                fileData.claims = claimsToInsert.map(c => ({
-                    id: c.id,
-                    claimNumber: c.claim_number,
-                    customer: c.customer,
-                    equipment: c.equipment,
-                    warranty: c.warranty,
-                    problem: c.problem,
-                    status: c.status,
-                    timeline: c.timeline,
-                    notes: c.notes,
-                    createdAt: c.created_at,
-                    updatedAt: c.updated_at
-                }));
-                fs.writeFileSync(DATA_FILE, JSON.stringify(fileData, null, 2), 'utf8');
-                console.log('✅ Local backup claims.json updated successfully.');
-            } catch (e) {
-                console.error('❌ Failed to update claims.json:', e);
-            }
-        }
-        
-        console.log('\n🌟 DUMMY DATA INITIALIZATION COMPLETE 🌟\n');
     }
+        
+    // 3. Sync to local Excel file
+    console.log('🔄 Syncing local Excel cache claims...');
+    await syncToExcelLocal(claimsToInsert);
+    
+    // 4. Backup to claims.json if it exists
+    const DATA_FILE = path.join(__dirname, 'data', 'claims.json');
+    if (fs.existsSync(DATA_FILE)) {
+        try {
+            const fileData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+            fileData.claims = claimsToInsert.map(c => ({
+                id: c.id,
+                claimNumber: c.claim_number,
+                customer: c.customer,
+                equipment: c.equipment,
+                warranty: c.warranty,
+                problem: c.problem,
+                status: c.status,
+                timeline: c.timeline,
+                notes: c.notes,
+                createdAt: c.created_at,
+                updatedAt: c.updated_at
+            }));
+            fs.writeFileSync(DATA_FILE, JSON.stringify(fileData, null, 2), 'utf8');
+            console.log('✅ Local backup claims.json updated successfully.');
+        } catch (e) {
+            console.error('❌ Failed to update claims.json:', e);
+        }
+    }
+    
+    console.log('\n🌟 DUMMY DATA INITIALIZATION COMPLETE 🌟\n');
 }
 
 insertDummyData();

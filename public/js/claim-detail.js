@@ -1,6 +1,6 @@
 // === Claim Detail JS ===
-const statusLabels = { pending:'รอดำเนินการ', reviewing:'กำลังตรวจสอบ', approved:'อนุมัติแล้ว', rejected:'ไม่อนุมัติ', completed:'เสร็จสิ้น' };
-const sevLabels = { low:'🟢 ต่ำ', medium:'🟡 ปานกลาง', high:'🟠 สูง', critical:'🔴 วิกฤต', 10: '1-10% - ใช้งานได้ปกติ', 50: '11-50% - ใช้งานได้บางส่วน', 80: '51-80% - ใช้งานไม่ได้เป็นส่วนใหญ่', 100: '81-100% - ใช้งานไม่ได้ / อันตราย' };
+const statusLabels = { pending:'Pending', reviewing:'Reviewing', approved:'Approved', rejected:'Rejected', completed:'Completed' };
+const sevLabels = { low:'🟢 Low', medium:'🟡 Medium', high:'🟠 High', critical:'🔴 Critical', 10: '1-10% - Normal Functioning', 50: '11-50% - Partially Functioning', 80: '51-80% - Mostly Non-Functioning', 100: '81-100% - Non-Functioning / Dangerous' };
 let currentClaim = null;
 let userAvatars = {};
 let userNames = {};
@@ -43,7 +43,7 @@ function showToast(msg, type='success') {
 }
 
 function formatDate(d) {
-    return new Date(d).toLocaleDateString('th-TH', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    return new Date(d).toLocaleDateString('en-US', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
 function formatDateOnly(d) {
@@ -54,11 +54,11 @@ function formatDateOnly(d) {
         const monthIndex = parseInt(parts[1]) - 1;
         const day = parseInt(parts[2]);
         const dateObj = new Date(year, monthIndex, day);
-        return dateObj.toLocaleDateString('th-TH', { day: '2-digit', month: 'long', year: 'numeric' });
+        return dateObj.toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' });
     }
     const dateObj = new Date(d);
     if (isNaN(dateObj)) return d;
-    return dateObj.toLocaleDateString('th-TH', { day: '2-digit', month: 'long', year: 'numeric' });
+    return dateObj.toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
 function detailRow(label, value) {
@@ -87,20 +87,20 @@ async function loadClaim() {
 }
 
 function renderClaim(c) {
-    document.getElementById('claimTitle').textContent = `เคลม ${c.claimNumber}`;
-    document.getElementById('claimSubtitle').textContent = `สร้างเมื่อ ${formatDate(c.createdAt)}`;
+    document.getElementById('claimTitle').textContent = `Claim ${c.claimNumber}`;
+    document.getElementById('claimSubtitle').textContent = `Submitted on ${formatDate(c.createdAt)}`;
     document.getElementById('currentStatus').innerHTML = `<span class="badge badge-${c.status}" style="font-size:0.9rem;padding:6px 16px;">${statusLabels[c.status]}</span>`;
 
     // Action buttons based on status (Admin only)
     let btns = '';
     if (currentUser.role === 'admin') {
         if (c.status === 'pending') {
-            btns = `<button class="btn btn-primary btn-sm" onclick="openStatusModal('reviewing','ตรวจสอบ')">🔍 เริ่มตรวจสอบ</button>`;
+            btns = `<button class="btn btn-primary btn-sm" onclick="openStatusModal('reviewing','Reviewing')">🔍 Start Review</button>`;
         } else if (c.status === 'reviewing') {
-            btns = `<button class="btn btn-success btn-sm" onclick="openStatusModal('approved','อนุมัติ')">✅ อนุมัติ</button>
-                     <button class="btn btn-danger btn-sm" onclick="openStatusModal('rejected','ไม่อนุมัติ')">❌ ไม่อนุมัติ</button>`;
+            btns = `<button class="btn btn-success btn-sm" onclick="openStatusModal('approved','Approved')">✅ Approve</button>
+                     <button class="btn btn-danger btn-sm" onclick="openStatusModal('rejected','Rejected')">❌ Reject</button>`;
         } else if (c.status === 'approved') {
-            btns = `<button class="btn btn-primary btn-sm" onclick="openStatusModal('completed','เสร็จสิ้น')">🏁 เสร็จสิ้น</button>`;
+            btns = `<button class="btn btn-primary btn-sm" onclick="openStatusModal('completed','Completed')">🏁 Complete Case</button>`;
         }
         
         const downloadBtn = document.getElementById('downloadPdfBtn');
@@ -117,29 +117,29 @@ function renderClaim(c) {
     // Customer
     const currentCustName = userNames[c.customer.email] || c.customer.name;
     document.getElementById('customerInfo').innerHTML =
-        detailRow('ชื่อ', currentCustName) + detailRow('โทร', c.customer.phone) +
-        detailRow('อีเมล', c.customer.email) + detailRow('ที่อยู่', c.customer.address);
+        detailRow('Name', currentCustName) + detailRow('Phone', c.customer.phone) +
+        detailRow('Email', c.customer.email) + detailRow('Address', c.customer.address);
 
     // Equipment
     document.getElementById('equipmentInfo').innerHTML =
-        detailRow('ประเภท', c.equipment.type) + detailRow('ยี่ห้อ', c.equipment.brand) +
-        detailRow('รุ่น', c.equipment.model) + detailRow('Serial No.', c.equipment.serialNumber) +
-        detailRow('วันที่แจ้งเคลม', formatDateOnly(c.equipment.purchaseDate));
+        detailRow('Type', c.equipment.type) + detailRow('Brand', c.equipment.brand) +
+        detailRow('Model', c.equipment.model) + detailRow('Serial No.', c.equipment.serialNumber) +
+        detailRow('Purchase Date', formatDateOnly(c.equipment.purchaseDate));
 
     // Warranty
     document.getElementById('warrantyInfo').innerHTML =
-        detailRow('เลขที่ใบรับประกัน', c.warranty.number) + detailRow('ระยะเวลา', c.warranty.period) +
-        detailRow('หมดอายุ', c.warranty.expiryDate);
+        detailRow('Warranty Cert No.', c.warranty.number) + detailRow('Period', c.warranty.period) +
+        detailRow('Expiry Date', c.warranty.expiryDate);
 
     // Problem
-    let problemHtml = detailRow('เปอร์เซ็นความเสียหาย', `<span class="severity severity-${c.problem.severity}">${sevLabels[c.problem.severity] || c.problem.severity}</span>`) +
-        `<div style="margin-top:0.75rem;"><div class="detail-label" style="margin-bottom:4px;">คำอธิบายปัญหา</div><p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">${c.problem.description}</p></div>`;
+    let problemHtml = detailRow('Damage Percentage', `<span class="severity severity-${c.problem.severity}">${sevLabels[c.problem.severity] || c.problem.severity}</span>`) +
+        `<div style="margin-top:0.75rem;"><div class="detail-label" style="margin-bottom:4px;">Problem Description</div><p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">${c.problem.description}</p></div>`;
 
     // Images
     if (c.problem.images && c.problem.images.length > 0) {
-        problemHtml += `<div style="margin-top:1rem;"><div class="detail-label" style="margin-bottom:8px;">📷 รูปภาพแนบ (${c.problem.images.length} รูป)</div><div class="image-gallery">`;
+        problemHtml += `<div style="margin-top:1rem;"><div class="detail-label" style="margin-bottom:8px;">📷 Attached Photos (${c.problem.images.length})</div><div class="image-gallery">`;
         c.problem.images.forEach((img, i) => {
-            problemHtml += `<div class="image-gallery-item" onclick="openLightbox('${img}')"><img src="${img}" alt="รูปที่ ${i+1}"></div>`;
+            problemHtml += `<div class="image-gallery-item" onclick="openLightbox('${img}')"><img src="${img}" alt="Photo ${i+1}"></div>`;
         });
         problemHtml += `</div></div>`;
     }
@@ -204,7 +204,7 @@ function renderClaim(c) {
 }
 
 function exportPDF() {
-    document.getElementById('printPrintedAt').textContent = new Date().toLocaleString('th-TH');
+    document.getElementById('printPrintedAt').textContent = new Date().toLocaleString('en-US');
     window.print();
 }
 
@@ -220,7 +220,7 @@ async function downloadPDF() {
             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" style="opacity: 0.25;"></circle>
             <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        กำลังสร้าง PDF...
+        Generating PDF...
     `;
     
     try {
@@ -233,7 +233,7 @@ async function downloadPDF() {
         }, 4000);
     } catch (e) {
         console.error(e);
-        showToast('เกิดข้อผิดพลาดในการดาวน์โหลด PDF', 'error');
+        showToast('Failed to download PDF', 'error');
         downloadBtn.disabled = false;
         downloadBtn.style.opacity = '1';
         downloadBtn.innerHTML = originalText;
@@ -250,7 +250,7 @@ function handleChatImageSelection() {
     if (fileInput.files && fileInput.files[0]) {
         const file = fileInput.files[0];
         if (file.size > 5 * 1024 * 1024) {
-            showToast('ขนาดรูปภาพต้องไม่เกิน 5MB', 'error');
+            showToast('Image size must not exceed 5MB', 'error');
             fileInput.value = '';
             return;
         }
@@ -282,7 +282,7 @@ function handleChatEnter(event) {
 function renderNotes(notes) {
     const el = document.getElementById('notesList');
     if (!notes.length) { 
-        el.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;margin-top:2.5rem;width:100%;">💬 ยังไม่มีประวัติการสนทนาเกี่ยวกับเคสนี้</p>'; 
+        el.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;margin-top:2.5rem;width:100%;">💬 No conversation history found for this claim</p>'; 
         return; 
     }
     
@@ -312,12 +312,12 @@ function renderNotes(notes) {
         
         let imageHtml = '';
         if (n.image) {
-            imageHtml = `<img src="${n.image}" class="chat-bubble-image" onclick="openLightbox('${n.image}')" alt="แนบรูปภาพ">`;
+            imageHtml = `<img src="${n.image}" class="chat-bubble-image" onclick="openLightbox('${n.image}')" alt="Attached Photo">`;
         }
 
         const date = new Date(n.createdAt);
-        const timeStr = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-        const dateStr = date.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
+        const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        const dateStr = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
         const displayTime = `${timeStr} | ${dateStr}`;
 
         return `
@@ -353,11 +353,11 @@ async function addNote() {
     inputEl.disabled = true;
     sendBtn.disabled = true;
     const originalBtnText = sendBtn.textContent;
-    sendBtn.textContent = 'ส่ง...';
+    sendBtn.textContent = 'Sending...';
 
     try {
         const payload = {
-            text: text || (selectedChatImageBase64 ? 'ส่งรูปภาพแนบ' : ''),
+            text: text || (selectedChatImageBase64 ? 'Sent an image attachment' : ''),
             author: currentUser.name,
             image: selectedChatImageBase64
         };
@@ -371,13 +371,13 @@ async function addNote() {
         if (res.ok) {
             inputEl.value = '';
             clearChatImageAttachment();
-            showToast('ส่งข้อความเรียบร้อย');
+            showToast('Message sent successfully');
             await loadClaim();
         } else {
-            showToast('ไม่สามารถส่งข้อความได้', 'error');
+            showToast('Failed to send message', 'error');
         }
     } catch (e) { 
-        showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error'); 
+        showToast('Connection error occurred', 'error'); 
     } finally {
         inputEl.disabled = false;
         sendBtn.disabled = false;
@@ -388,7 +388,7 @@ async function addNote() {
 
 function openStatusModal(newStatus, label) {
     document.getElementById('modalNewStatus').value = newStatus;
-    document.getElementById('modalTitle').textContent = `ยืนยันการ${label}`;
+    document.getElementById('modalTitle').textContent = `Confirm ${label}`;
     document.getElementById('statusModal').classList.add('active');
 }
 
@@ -403,11 +403,11 @@ async function confirmStatusChange() {
             body: JSON.stringify({ status, note })
         });
         if (res.ok) {
-            showToast('อัปเดตสถานะเรียบร้อย');
+            showToast('Status updated successfully');
             closeModal();
             loadClaim();
         }
-    } catch (e) { showToast('เกิดข้อผิดพลาด', 'error'); }
+    } catch (e) { showToast('An error occurred', 'error'); }
 }
 
 // Lightbox

@@ -71,11 +71,11 @@ function getWarrantyPeriodValue() {
     const months = parseInt(document.getElementById('warPeriodMonths').value) || 0;
     
     if (years > 0 && months > 0) {
-        return `${years} ปี ${months} เดือน`;
+        return `${years} years ${months} months`;
     } else if (years > 0) {
-        return `${years} ปี`;
+        return `${years} years`;
     } else if (months > 0) {
-        return `${months} เดือน`;
+        return `${months} months`;
     }
     return '';
 }
@@ -85,11 +85,11 @@ function setWarrantyPeriodValue(periodStr) {
     const str = String(periodStr).toLowerCase();
     
     let years = 0;
-    const yearMatch = str.match(/(\d+)\s*(?:ปี|year)/i);
+    const yearMatch = str.match(/(\d+)\s*(?:ปี|year|yr)/i);
     if (yearMatch) years = parseInt(yearMatch[1], 10);
 
     let months = 0;
-    const monthMatch = str.match(/(\d+)\s*(?:เดือน|month)/i);
+    const monthMatch = str.match(/(\d+)\s*(?:เดือน|month|mo)/i);
     if (monthMatch) months = parseInt(monthMatch[1], 10);
     
     if (!yearMatch && !monthMatch) {
@@ -202,12 +202,12 @@ imageInput.addEventListener('change', (e) => {
 
 function handleFiles(files) {
     const remaining = 5 - uploadedImages.length;
-    if (remaining <= 0) { showToast('อัปโหลดได้สูงสุด 5 รูป', 'error'); return; }
+    if (remaining <= 0) { showToast('Maximum 5 images can be uploaded', 'error'); return; }
 
     const fileArr = Array.from(files).slice(0, remaining);
     fileArr.forEach(file => {
-        if (!file.type.startsWith('image/')) { showToast(`${file.name} ไม่ใช่ไฟล์รูปภาพ`, 'error'); return; }
-        if (file.size > 5 * 1024 * 1024) { showToast(`${file.name} ขนาดเกิน 5MB`, 'error'); return; }
+        if (!file.type.startsWith('image/')) { showToast(`${file.name} is not an image file`, 'error'); return; }
+        if (file.size > 5 * 1024 * 1024) { showToast(`${file.name} exceeds the 5MB size limit`, 'error'); return; }
 
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -224,7 +224,7 @@ function renderPreviews() {
         const item = document.createElement('div');
         item.className = 'preview-item';
         item.innerHTML = `
-            <img src="${img}" alt="รูปที่ ${i+1}">
+            <img src="${img}" alt="Image ${i+1}">
             <button type="button" class="remove-btn" onclick="event.stopPropagation();removeImage(${i})">✕</button>
         `;
         uploadPreview.appendChild(item);
@@ -283,13 +283,13 @@ document.getElementById('claimForm').addEventListener('submit', async function(e
             const { data } = await res.json();
             // Clear draft on success
             localStorage.removeItem(DRAFT_KEY);
-            showToast(`แจ้งเคลมสำเร็จ! เลขที่: ${data.claimNumber}`);
+            showToast(`Claim submitted successfully! Claim No: ${data.claimNumber}`);
             setTimeout(() => { window.location.href = `/claim-detail?id=${data.id}`; }, 1500);
         } else {
-            showToast('เกิดข้อผิดพลาดในการส่งเคลม', 'error');
+            showToast('An error occurred while submitting claim', 'error');
         }
     } catch (e) {
-        showToast('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
+        showToast('Unable to connect to the server', 'error');
     }
 });
 
@@ -349,8 +349,8 @@ function updateBrands() {
     const brandSel = document.getElementById('eqBrand');
     const modelSel = document.getElementById('eqModel');
     
-    brandSel.innerHTML = '<option value="">-- เลือกยี่ห้อ --</option>';
-    modelSel.innerHTML = '<option value="">-- เลือกรุ่น --</option>';
+    brandSel.innerHTML = '<option value="">-- Select Brand --</option>';
+    modelSel.innerHTML = '<option value="">-- Select Model --</option>';
     
     if (brandModelMapping[eqType]) {
         brandSel.disabled = false;
@@ -364,7 +364,7 @@ function updateBrands() {
         
         const customOpt = document.createElement('option');
         customOpt.value = 'custom';
-        customOpt.textContent = 'อื่นๆ (ระบุเอง)';
+        customOpt.textContent = 'Other (Specify)';
         brandSel.appendChild(customOpt);
     } else {
         brandSel.disabled = true;
@@ -383,7 +383,7 @@ function updateModels() {
     const eqBrand = document.getElementById('eqBrand').value;
     const modelSel = document.getElementById('eqModel');
     
-    modelSel.innerHTML = '<option value="">-- เลือกรุ่น --</option>';
+    modelSel.innerHTML = '<option value="">-- Select Model --</option>';
     
     const brandCustom = document.getElementById('eqBrandCustom');
     if (eqBrand === 'custom') {
@@ -409,7 +409,7 @@ function updateModels() {
         
         const customOpt = document.createElement('option');
         customOpt.value = 'custom';
-        customOpt.textContent = 'อื่นๆ (ระบุเอง)';
+        customOpt.textContent = 'Other (Specify)';
         modelSel.appendChild(customOpt);
     } else {
         modelSel.disabled = true;

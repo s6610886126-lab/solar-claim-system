@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SolarCare - ภาพรวมสถิติวิเคราะห์</title>
+    <title>SolarCare - Analytics Overview</title>
     <link rel="stylesheet" href="/css/style.css">
     <script src="/js/theme.js"></script>
     <style>
@@ -108,8 +108,6 @@
             padding-bottom: 12px;
         }
 
-
-
         /* Custom bar chart adjustments */
         .chart-bar {
             background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%) !important;
@@ -141,29 +139,29 @@
             Solar<span>Care</span>
         </a>
         <nav>
-            <a href="/dashboard">หน้าหลัก</a>
-            <a href="/claim-form">แจ้งเคลม</a>
-            <a href="/track-claim">ติดตามสถานะ</a>
-            <a href="/overview" class="active">ภาพรวม</a>
-            <a href="/import-export">นำเข้า/ส่งออก</a>
+            <a href="/dashboard">Home</a>
+            <a href="/claim-form">File Claim</a>
+            <a href="/track-claim">Track Status</a>
+            <a href="/overview" class="active">Overview</a>
+            <a href="/import-export">Import/Export</a>
         </nav>
         <div class="user-info">
             <button class="notify-btn">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
                 </svg>
-                แจ้งเตือน
+                Notifications
             </button>
             <div class="avatar" id="userAvatar">S</div>
-            <button onclick="logout()" class="btn btn-ghost btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);" title="ออกจากระบบ">🚪 ออก</button>
+            <button onclick="logout()" class="btn btn-ghost btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);" title="Logout">🚪 Logout</button>
         </div>
     </header>
 
     <main class="page-container" style="max-width: 1200px; padding-bottom: 5rem;">
         <!-- Page Header -->
         <div class="page-header animate-in">
-            <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary);">📊 ภาพรวมรายงานวิเคราะห์</h1>
-            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 4px;">วิเคราะห์แนวโน้ม และสัดส่วนประเภทอุปกรณ์ของรายการเคลมทั้งหมด</p>
+            <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary);">📊 Analytics Overview</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 4px;">Analyze monthly trends and equipment breakdown of all submitted claims</p>
         </div>
 
         <!-- Stats Row -->
@@ -173,7 +171,7 @@
                 <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">📊</div>
                 <div class="stat-data">
                     <div class="stat-value" id="statTotal">0</div>
-                    <div class="stat-label">แจ้งเคลมทั้งหมด</div>
+                    <div class="stat-label">Total Claims</div>
                 </div>
             </div>
 
@@ -182,7 +180,7 @@
                 <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">🛡️</div>
                 <div class="stat-data">
                     <div class="stat-value" id="statSuccess">0%</div>
-                    <div class="stat-label">อัตราอนุมัติรับเคลม</div>
+                    <div class="stat-label">Approval Rate</div>
                 </div>
             </div>
 
@@ -190,8 +188,8 @@
             <div class="premium-stat-card card-glow-blue">
                 <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">⏱️</div>
                 <div class="stat-data">
-                    <div class="stat-value" id="statAvgTime">3.2 วัน</div>
-                    <div class="stat-label">เวลาดำเนินการเฉลี่ย</div>
+                    <div class="stat-value" id="statAvgTime">3.2 Days</div>
+                    <div class="stat-label">Avg Resolution Time</div>
                 </div>
             </div>
 
@@ -199,8 +197,8 @@
             <div class="premium-stat-card card-glow-purple">
                 <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">⚡</div>
                 <div class="stat-data">
-                    <div class="stat-value" id="statResponse">24 ชม.</div>
-                    <div class="stat-label">เวลาตอบกลับภายใน</div>
+                    <div class="stat-value" id="statResponse">24 Hrs</div>
+                    <div class="stat-label">Response Time</div>
                 </div>
             </div>
         </div>
@@ -213,9 +211,9 @@
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: #f59e0b;">
                         <path d="M18 20V10M12 20V4M6 20v-6"/>
                     </svg>
-                    แนวโน้มแจ้งเคลมรายเดือน
+                    Monthly Claim Trends
                 </h3>
-                <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0;">แนวโน้มปริมาณการรับเรื่องแจ้งเคลมในรอบ 6 เดือนล่าสุด</p>
+                <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0;">Quantity of submitted claims over the past 6 months</p>
                 <div class="chart-bar-container" id="monthlyChart" style="height: 250px; margin-top: 1rem; position: relative;">
                     <canvas id="monthlyChartCanvas"></canvas>
                 </div>
@@ -227,15 +225,15 @@
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: #10b981;">
                         <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
                     </svg>
-                    สัดส่วนตามประเภทอุปกรณ์
+                    Equipment Breakdown
                 </h3>
-                <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0;">ร้อยละและจำนวนสินค้าโซลาร์แต่ละประเภทที่เกิดปัญหา</p>
+                <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0;">Percentage and quantity of solar items reported per category</p>
                 <div id="equipmentChart" style="margin-top: 1rem;">
                     <div class="donut-chart" style="width: 190px; height: 190px; margin: 0 auto 1.5rem;">
                         <canvas id="donutCanvas"></canvas>
                         <div class="donut-center" style="top: 50%;">
                             <div class="value" id="donutTotal" style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary);">0</div>
-                            <div class="label" style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 700;">รายการ</div>
+                            <div class="label" style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 700;">Claims</div>
                         </div>
                     </div>
                     <div class="donut-legend" id="donutLegend" style="max-height: 220px; overflow-y: auto; padding-right: 4px;"></div>

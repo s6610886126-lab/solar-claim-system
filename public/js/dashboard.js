@@ -1,6 +1,6 @@
 // === Dashboard JS ===
-const statusLabels = { pending:'รอดำเนินการ', reviewing:'กำลังตรวจสอบ', approved:'อนุมัติแล้ว', rejected:'ไม่อนุมัติ', completed:'เสร็จสิ้น' };
-const sevLabels = { low:'ต่ำ', medium:'ปานกลาง', high:'สูง', critical:'วิกฤต', 10:'1-10%', 50:'11-50%', 80:'51-80%', 100:'81-100%' };
+const statusLabels = { pending:'Pending', reviewing:'Reviewing', approved:'Approved', rejected:'Rejected', completed:'Completed' };
+const sevLabels = { low:'Low', medium:'Medium', high:'High', critical:'Critical', 10:'1-10%', 50:'11-50%', 80:'51-80%', 100:'81-100%' };
 
 function showToast(msg, type='success') {
     const c = document.getElementById('toastContainer');
@@ -12,7 +12,7 @@ function showToast(msg, type='success') {
 }
 
 function formatDate(d) {
-    return new Date(d).toLocaleDateString('th-TH', { day:'2-digit', month:'short', year:'numeric' });
+    return new Date(d).toLocaleDateString('en-US', { day:'2-digit', month:'short', year:'numeric' });
 }
 
 // === Session Management ===
@@ -52,8 +52,8 @@ function initDashboard() {
         // Update header for customer
         const heroTitle = document.querySelector('.hero-title');
         const heroSubtitle = document.querySelector('.hero-subtitle');
-        if (heroTitle) heroTitle.innerHTML = 'ระบบจัดการ<br><span style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.2));">เคลมของคุณ</span>';
-        if (heroSubtitle) heroSubtitle.textContent = 'ติดตามสถานะการเคลมอุปกรณ์โซลาร์เซลล์ของคุณแบบเรียลไทม์';
+        if (heroTitle) heroTitle.innerHTML = 'Manage<br><span style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.2));">Your Claims</span>';
+        if (heroSubtitle) heroSubtitle.textContent = 'Track the status of your solar equipment claims in real-time';
         
         const tableTitle = document.getElementById('tableTitle');
         if (tableTitle) tableTitle.style.display = 'none';
@@ -106,10 +106,10 @@ async function loadStats() {
         }
 
         if (statAvgTimeEl) {
-            statAvgTimeEl.textContent = s.total > 0 ? `${data.avgResolutionDays || '0.0'} วัน` : '0 วัน';
+            statAvgTimeEl.textContent = s.total > 0 ? `${data.avgResolutionDays || '0.0'} Days` : '0 Days';
         }
         if (statResponseEl) {
-            statResponseEl.textContent = s.total > 0 ? '24 ชม.' : '0 ชม.';
+            statResponseEl.textContent = s.total > 0 ? '24 Hrs' : '0 Hrs';
         }
 
         // Monthly chart rendering (Chart.js or Fallback)
@@ -122,7 +122,7 @@ async function loadStats() {
                 data: {
                     labels: data.monthlyStats.map(m => m.month),
                     datasets: [{
-                        label: 'จำนวนรายการเคลม',
+                        label: 'Number of Claims',
                         data: data.monthlyStats.map(m => m.count),
                         backgroundColor: 'rgba(245, 158, 11, 0.85)',
                         borderColor: '#f59e0b',
@@ -198,7 +198,7 @@ function drawDonut(eqStats, total) {
             window.myDonutChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['ไม่มีข้อมูล'],
+                    labels: ['No Data'],
                     datasets: [{
                         data: [1],
                         backgroundColor: ['#475569'],
@@ -217,7 +217,7 @@ function drawDonut(eqStats, total) {
                 }
             });
             const legend = document.getElementById('donutLegend');
-            if (legend) legend.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:1rem;">ไม่มีข้อมูลอุปกรณ์</div>';
+            if (legend) legend.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:1rem;">No Equipment Data Available</div>';
             return;
         }
 
@@ -271,7 +271,7 @@ function drawDonut(eqStats, total) {
         ctx.fill();
         
         const legend = document.getElementById('donutLegend');
-        if (legend) legend.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:1rem;">ไม่มีข้อมูลอุปกรณ์</div>';
+        if (legend) legend.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:1rem;">No Equipment Data Available</div>';
         return;
     }
 
@@ -423,20 +423,20 @@ async function loadClaims() {
             cardsContainer.innerHTML = data.map(c => {
                 // Determine CSS colors for status
                 let colorClass = 'blue';
-                let displayStatusText = 'กำลังดำเนินการ';
+                let displayStatusText = 'Reviewing';
                 
                 if (c.status === 'pending') {
                     colorClass = 'orange';
-                    displayStatusText = 'รอดำเนินการ';
+                    displayStatusText = 'Pending';
                 } else if (c.status === 'completed' || c.status === 'approved') {
                     colorClass = 'green';
-                    displayStatusText = c.status === 'completed' ? 'เสร็จสิ้น' : 'อนุมัติแล้ว';
+                    displayStatusText = c.status === 'completed' ? 'Completed' : 'Approved';
                 } else if (c.status === 'rejected') {
                     colorClass = 'red';
-                    displayStatusText = 'ไม่อนุมัติ';
+                    displayStatusText = 'Rejected';
                 } else if (c.status === 'reviewing') {
                     colorClass = 'blue';
-                    displayStatusText = 'กำลังดำเนินการ';
+                    displayStatusText = 'Reviewing';
                 }
 
                 return `
@@ -459,8 +459,8 @@ async function loadClaims() {
                                 ${formatDate(c.createdAt)}
                             </div>
                             <div class="claim-card-actions">
-                                <button class="btn btn-ghost btn-sm" onclick="openModal('${c.id}','${c.status}')" title="เปลี่ยนสถานะ" ${currentUser.role !== 'admin' ? 'style="display:none"' : ''}>⚙️</button>
-                                <button class="btn btn-ghost btn-sm" onclick="deleteClaim('${c.id}')" title="ลบ" style="color:var(--danger); ${currentUser.role !== 'admin' ? 'display:none' : ''}">🗑</button>
+                                <button class="btn btn-ghost btn-sm" onclick="openModal('${c.id}','${c.status}')" title="Change Status" ${currentUser.role !== 'admin' ? 'style="display:none"' : ''}>⚙️</button>
+                                <button class="btn btn-ghost btn-sm" onclick="deleteClaim('${c.id}')" title="Delete" style="color:var(--danger); ${currentUser.role !== 'admin' ? 'display:none' : ''}">🗑</button>
                             </div>
                         </div>
                     </div>
@@ -480,9 +480,9 @@ async function loadClaims() {
                     <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer"><span class="badge badge-${c.status}">${statusLabels[c.status]}</span></td>
                     <td onclick="window.location.href='/claim-detail?id=${c.id}'" style="cursor:pointer">${formatDate(c.createdAt)}</td>
                     <td>
-                        <button class="btn btn-ghost btn-sm" onclick="openModal('${c.id}','${c.status}')" title="เปลี่ยนสถานะ" ${currentUser.role !== 'admin' ? 'style="display:none"' : ''}>⚙️</button>
-                        <button class="btn btn-ghost btn-sm" onclick="deleteClaim('${c.id}')" title="ลบ" style="color:var(--danger); ${currentUser.role !== 'admin' ? 'display:none' : ''}">🗑</button>
-                        <button class="btn btn-ghost btn-sm" onclick="window.location.href='/claim-detail?id=${c.id}'" title="ดูรายละเอียด">👁️</button>
+                        <button class="btn btn-ghost btn-sm" onclick="openModal('${c.id}','${c.status}')" title="Change Status" ${currentUser.role !== 'admin' ? 'style="display:none"' : ''}>⚙️</button>
+                        <button class="btn btn-ghost btn-sm" onclick="deleteClaim('${c.id}')" title="Delete" style="color:var(--danger); ${currentUser.role !== 'admin' ? 'display:none' : ''}">🗑</button>
+                        <button class="btn btn-ghost btn-sm" onclick="window.location.href='/claim-detail?id=${c.id}'" title="View Details">👁️</button>
                     </td>
                 </tr>
             `).join('');
@@ -512,12 +512,12 @@ async function updateStatus() {
             body: JSON.stringify({ status, note })
         });
         if (res.ok) {
-            showToast('อัปเดตสถานะเรียบร้อย');
+            showToast('Status updated successfully');
             closeModal();
             loadClaims();
             loadStats();
         }
-    } catch (e) { showToast('เกิดข้อผิดพลาด', 'error'); }
+    } catch (e) { showToast('An error occurred', 'error'); }
 }
 
 function deleteClaim(id) {
@@ -534,14 +534,14 @@ async function confirmDelete() {
     try {
         const res = await fetch(`/api/claims/${id}`, { method: 'DELETE' });
         if (res.ok) {
-            showToast('ลบเคลมเรียบร้อย');
+            showToast('Claim deleted successfully');
             closeDeleteModal();
             loadClaims();
             loadStats();
         } else {
-            showToast('เกิดข้อผิดพลาดในการลบ', 'error');
+            showToast('Failed to delete claim', 'error');
         }
-    } catch (e) { showToast('เกิดข้อผิดพลาด', 'error'); }
+    } catch (e) { showToast('An error occurred', 'error'); }
 }
 
 // Debounce search
@@ -580,7 +580,7 @@ async function handleImportFile(event) {
     const isExcel = file.name.endsWith('.xlsx');
     const isCsv = file.name.endsWith('.csv');
     if (!isExcel && !isCsv) {
-        showToast('กรุณาเลือกไฟล์ Excel (.xlsx) หรือ CSV (.csv) เท่านั้น', 'error');
+        showToast('Please select only Excel (.xlsx) or CSV (.csv) files', 'error');
         event.target.value = '';
         return;
     }
@@ -588,7 +588,7 @@ async function handleImportFile(event) {
     const importBtn = document.getElementById('importBtn');
     const originalText = importBtn.innerHTML;
     importBtn.disabled = true;
-    importBtn.innerHTML = '⏳ กำลังนำเข้าข้อมูล...';
+    importBtn.innerHTML = '⏳ Importing data...';
 
     const reader = new FileReader();
     reader.onload = async function(e) {
@@ -603,17 +603,17 @@ async function handleImportFile(event) {
             const result = await res.json();
             
             if (res.ok && result.success) {
-                showToast(`นำเข้าข้อมูลสำเร็จ ${result.count} รายการ!`);
+                showToast(`Successfully imported ${result.count} records!`);
                 loadClaims();
                 if (currentUser.role === 'admin') {
                     loadStats();
                 }
             } else {
-                showToast(result.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล', 'error');
+                showToast(result.message || 'Failed to import data', 'error');
             }
         } catch (err) {
             console.error('Import error:', err);
-            showToast('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error');
+            showToast('Unable to connect to the server', 'error');
         } finally {
             importBtn.disabled = false;
             importBtn.innerHTML = originalText;

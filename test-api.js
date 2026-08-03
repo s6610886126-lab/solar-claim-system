@@ -78,7 +78,7 @@ async function runApiTests() {
             },
             warranty: {
                 number: "WRT-API-001",
-                period: "12 ปี"
+                period: "12 years"
             },
             problem: {
                 description: "Test claim created via automated API test",

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SolarCare - นำเข้าและส่งออกข้อมูล</title>
+    <title>SolarCare - Import & Export</title>
     <link rel="stylesheet" href="/css/style.css">
     <script src="/js/theme.js"></script>
 </head>
@@ -27,29 +27,29 @@
             Solar<span>Care</span>
         </a>
         <nav>
-            <a href="/dashboard">หน้าหลัก</a>
-            <a href="/claim-form">แจ้งเคลม</a>
-            <a href="/track-claim">ติดตามสถานะ</a>
-            <a href="/overview">ภาพรวม</a>
-            <a href="/import-export" class="active">นำเข้า/ส่งออก</a>
+            <a href="/dashboard">Home</a>
+            <a href="/claim-form">File Claim</a>
+            <a href="/track-claim">Track Status</a>
+            <a href="/overview">Overview</a>
+            <a href="/import-export" class="active">Import/Export</a>
         </nav>
         <div class="user-info">
             <button class="notify-btn">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
                 </svg>
-                แจ้งเตือน
+                Notifications
             </button>
             <div class="avatar" id="userAvatar">S</div>
-            <button onclick="logout()" class="btn btn-ghost btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);" title="ออกจากระบบ">🚪 ออก</button>
+            <button onclick="logout()" class="btn btn-ghost btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);" title="Logout">🚪 Logout</button>
         </div>
     </header>
 
     <main class="page-container" style="max-width: 1200px; padding-bottom: 5rem;">
         <!-- Page Header -->
         <div class="page-header animate-in">
-            <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary);">นำเข้า / ส่งออกข้อมูล</h1>
-            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 4px;">อัปโหลดไฟล์ CSV หรือ Excel เพื่อนำเข้าข้อมูลเคลม และดาวน์โหลดรายงานเป็น Excel</p>
+            <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary);">Import / Export Data</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 4px;">Upload CSV or Excel files to import claim records, and download Excel reports</p>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 2rem; margin-top: 1.5rem;">
@@ -57,23 +57,23 @@
             <div class="card animate-in" style="padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); background: #ffffff;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                     <span style="display: inline-block; width: 8px; height: 8px; background-color: #f59e0b; border-radius: 50%;"></span>
-                    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin: 0;">ส่งออกข้อมูล</h3>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin: 0;">Export Data</h3>
                 </div>
                 <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; margin-top: 0;">
-                    ดาวน์โหลดข้อมูลเคลมทั้งหมดในระบบ หรือกรองตามสถานะก่อนส่งออก
+                    Download all claim records from the system, or filter by status before exporting
                 </p>
 
-                <!-- Export Filters Bar -->
+                <!-- Export Actions Bar -->
                 <div class="export-actions-bar" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
                     <!-- Dropdown -->
                     <div class="custom-select-wrapper" style="position: relative; min-width: 240px;">
                         <select id="exportStatusSelect" class="form-control" onchange="renderPreviewTable()" style="cursor: pointer; padding: 10px 40px 10px 16px; border-radius: 8px; border: 1px solid var(--border-light); background: #ffffff; color: var(--text-primary); font-weight: 600; width: 100%; appearance: none; -webkit-appearance: none; font-size: 0.95rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                            <option value="all">สถานะทั้งหมด (0 รายการ)</option>
-                            <option value="pending">รอดำเนินการ (0 รายการ)</option>
-                            <option value="reviewing">กำลังตรวจสอบ (0 รายการ)</option>
-                            <option value="approved">อนุมัติแล้ว (0 รายการ)</option>
-                            <option value="rejected">ไม่อนุมัติ (0 รายการ)</option>
-                            <option value="completed">เสร็จสิ้น (0 รายการ)</option>
+                            <option value="all">All Statuses (0 claims)</option>
+                            <option value="pending">Pending (0 claims)</option>
+                            <option value="reviewing">Reviewing (0 claims)</option>
+                            <option value="approved">Approved (0 claims)</option>
+                            <option value="rejected">Rejected (0 claims)</option>
+                            <option value="completed">Completed (0 claims)</option>
                         </select>
                         <div style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-secondary); font-size: 0.8rem;">
                             ▼
@@ -85,7 +85,7 @@
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top: -1px;">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                         </svg>
-                        ดาวน์โหลด Excel
+                        Download Excel
                     </a>
 
                     <!-- CSV Button -->
@@ -93,7 +93,7 @@
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top: -1px;">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                         </svg>
-                        ดาวน์โหลด CSV
+                        Download CSV
                     </button>
                 </div>
 
@@ -103,12 +103,12 @@
                         <thead>
                             <tr style="background: #f8fafc; border-bottom: 1px solid var(--border-light);">
                                 <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary); width: 60px; text-transform: uppercase;">#</th>
-                                <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">หมายเลขเคลม</th>
-                                <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">ลูกค้า</th>
-                                <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">เบอร์โทร</th>
-                                <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">ระดับ</th>
-                                <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">วันที่แจ้ง</th>
-                                <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">สถานะ</th>
+                                <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">Claim Number</th>
+                                <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">Customer</th>
+                                <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">Phone</th>
+                                <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">Severity</th>
+                                <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">Date Created</th>
+                                <th style="padding: 14px 16px; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">Status</th>
                             </tr>
                         </thead>
                         <tbody id="exportPreviewTbody">
@@ -122,10 +122,10 @@
             <div class="card animate-in" style="padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); background: #ffffff;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                     <span style="display: inline-block; width: 8px; height: 8px; background-color: #f59e0b; border-radius: 50%;"></span>
-                    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin: 0;">นำเข้าข้อมูล</h3>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin: 0;">Import Data</h3>
                 </div>
                 <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; margin-top: 0;">
-                    รองรับไฟล์ .csv และ .xlsx — ระบบจะแสดงตัวอย่างข้อมูลก่อนนำเข้า
+                    Supports .csv and .xlsx files — System shows preview before importing
                 </p>
 
                 <!-- Dropzone -->
@@ -136,10 +136,10 @@
                             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
                         </svg>
                         <p style="margin-top: 10px; color: var(--text-primary); font-size: 0.95rem; font-weight: 700;">
-                            ลากไฟล์ Excel / CSV มาวางที่นี่ หรือคลิกเพื่ออัปโหลด
+                            Drag and drop Excel / CSV file here, or click to upload
                         </p>
                         <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">
-                            รองรับไฟล์ฟอร์แมตมาตรฐานชีตรายการเคลมโซลาร์เซลล์
+                            Supports standard templates for solar equipment claim sheets
                         </p>
                     </div>
                 </div>
@@ -233,12 +233,12 @@
                 // Update dropdown select
                 const select = document.getElementById('exportStatusSelect');
                 if (select) {
-                    select.options[0].textContent = `สถานะทั้งหมด (${total} รายการ)`;
-                    select.options[1].textContent = `รอดำเนินการ (${pending} รายการ)`;
-                    select.options[2].textContent = `กำลังตรวจสอบ (${reviewing} รายการ)`;
-                    select.options[3].textContent = `อนุมัติแล้ว (${approved} รายการ)`;
-                    select.options[4].textContent = `ไม่อนุมัติ (${rejected} รายการ)`;
-                    select.options[5].textContent = `เสร็จสิ้น (${completed} รายการ)`;
+                    select.options[0].textContent = `All Statuses (${total} claims)`;
+                    select.options[1].textContent = `Pending (${pending} claims)`;
+                    select.options[2].textContent = `Reviewing (${reviewing} claims)`;
+                    select.options[3].textContent = `Approved (${approved} claims)`;
+                    select.options[4].textContent = `Rejected (${rejected} claims)`;
+                    select.options[5].textContent = `Completed (${completed} claims)`;
                 }
                 
                 renderPreviewTable();
@@ -267,8 +267,8 @@
             if (filtered.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="9" style="text-align: center; padding: 2.5rem; color: var(--text-muted); font-size: 0.95rem;">
-                            🔍 ไม่พบข้อมูลตามฟิลเตอร์สถานะที่เลือก
+                        <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--text-muted); font-size: 0.95rem;">
+                            🔍 No claims found matching the selected status filter
                         </td>
                     </tr>
                 `;
@@ -277,51 +277,33 @@
             
             tbody.innerHTML = filtered.map((c, index) => {
                 let statusClass = 'blue';
-                let statusText = 'กำลังตรวจสอบ';
+                let statusText = 'Reviewing';
                 let progressText = '45%';
                 
                 if (c.status === 'pending') {
                     statusClass = 'orange';
-                    statusText = 'รอดำเนินการ';
+                    statusText = 'Pending';
                     progressText = '15%';
                 } else if (c.status === 'completed') {
                     statusClass = 'green';
-                    statusText = 'เสร็จสิ้น';
+                    statusText = 'Completed';
                     progressText = '100%';
                 } else if (c.status === 'approved') {
                     statusClass = 'green';
-                    statusText = 'อนุมัติแล้ว';
+                    statusText = 'Approved';
                     progressText = '75%';
                 } else if (c.status === 'rejected') {
                     statusClass = 'red';
-                    statusText = 'ไม่อนุมัติ';
+                    statusText = 'Rejected';
                     progressText = '100%';
                 } else if (c.status === 'reviewing') {
                     statusClass = 'blue';
-                    statusText = 'กำลังตรวจสอบ';
+                    statusText = 'Reviewing';
                     progressText = '45%';
                 }
 
-                // Friendly Thai problem categories matching mockup exactly
-                let probDesc = c.problem.description || '';
-                let displayProbType = c.equipment.type;
-                
-                if (c.equipment.type === 'Solar Panel' || c.equipment.type === 'Solar Cell') {
-                    displayProbType = 'แผงเสียหาย';
-                } else if (c.equipment.type === 'Inverter') {
-                    displayProbType = 'อินเวอร์เตอร์';
-                } else if (c.equipment.type === 'Battery') {
-                    displayProbType = 'แบตเตอรี่';
-                } else if (probDesc.includes('ไฟ') || probDesc.includes('ไม่ผลิต')) {
-                    displayProbType = 'ไฟผลิตไฟ';
-                } else {
-                    if (c.equipment.type === 'Safety Switch') displayProbType = 'สวิตช์นิรภัย';
-                    else if (c.equipment.type === 'Smart Meter') displayProbType = 'สมาร์ทมิเตอร์';
-                    else displayProbType = c.equipment.type;
-                }
-
-                const sevMap = { low: 'ต่ำ', medium: 'ปานกลาง', high: 'สูง', critical: 'วิกฤต' };
-                const displaySeverity = sevMap[c.problem.severity] || c.problem.severity || 'ต่ำ';
+                const sevMap = { low: 'Low', medium: 'Medium', high: 'High', critical: 'Critical' };
+                const displaySeverity = sevMap[c.problem.severity] || c.problem.severity || 'Low';
 
                 return `
                     <tr style="border-bottom: 1px solid var(--border-light); transition: background 0.1s;" class="preview-row">
@@ -353,18 +335,18 @@
             }
 
             if (filtered.length === 0) {
-                showToast('ไม่มีข้อมูลในการดาวน์โหลด CSV', 'info');
+                showToast('No data available to download CSV', 'info');
                 return;
             }
 
-            const headers = ['#', 'หมายเลขเคลม', 'ลูกค้า', 'เบอร์โทร', 'อีเมล', 'ประเภทอุปกรณ์', 'ยี่ห้อ', 'รุ่น', 'Serial Number', 'ระดับความรุนแรง', 'วันที่แจ้ง', 'สถานะ'];
+            const headers = ['#', 'Claim Number', 'Customer', 'Phone', 'Email', 'Equipment Type', 'Brand', 'Model', 'Serial Number', 'Severity', 'Date Created', 'Status'];
             const csvRows = [headers];
             
             filtered.forEach((c, index) => {
-                const sevMap = { low: 'ต่ำ', medium: 'ปานกลาง', high: 'สูง', critical: 'วิกฤต' };
-                const displaySeverity = sevMap[c.problem.severity] || c.problem.severity || 'ต่ำ';
+                const sevMap = { low: 'Low', medium: 'Medium', high: 'High', critical: 'Critical' };
+                const displaySeverity = sevMap[c.problem.severity] || c.problem.severity || 'Low';
                 
-                const statusMap = { pending: 'รอดำเนินการ', reviewing: 'กำลังตรวจสอบ', approved: 'อนุมัติแล้ว', rejected: 'ไม่อนุมัติ', completed: 'เสร็จสิ้น' };
+                const statusMap = { pending: 'Pending', reviewing: 'Reviewing', approved: 'Approved', rejected: 'Rejected', completed: 'Completed' };
                 const displayStatus = statusMap[c.status] || c.status;
 
                 csvRows.push([
@@ -383,7 +365,7 @@
                 ]);
             });
 
-            // Prepend BOM character so Excel opens Thai strings perfectly
+            // Prepend BOM character so Excel opens UTF-8 strings perfectly
             const csvString = '\uFEFF' + csvRows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')).join('\n');
             
             const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
@@ -395,7 +377,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showToast('ดาวน์โหลด CSV สำเร็จ');
+            showToast('CSV downloaded successfully');
         }
 
         // Initialize export loader

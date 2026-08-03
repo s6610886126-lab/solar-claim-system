@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,21 +27,21 @@
             Solar<span>Care</span>
         </a>
         <nav>
-            <a href="/dashboard" class="active">หน้าหลัก</a>
-            <a href="/claim-form">แจ้งเคลม</a>
-            <a href="/track-claim">ติดตามสถานะ</a>
-            <a href="/overview">ภาพรวม</a>
-            <a href="/import-export">นำเข้า/ส่งออก</a>
+            <a href="/dashboard" class="active">Home</a>
+            <a href="/claim-form">File Claim</a>
+            <a href="/track-claim">Track Status</a>
+            <a href="/overview">Overview</a>
+            <a href="/import-export">Import/Export</a>
         </nav>
         <div class="user-info">
             <button class="notify-btn">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
                 </svg>
-                แจ้งเตือน
+                Notifications
             </button>
             <div class="avatar" id="userAvatar">S</div>
-            <button onclick="logout()" class="btn btn-ghost btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);" title="ออกจากระบบ">🚪 ออก</button>
+            <button onclick="logout()" class="btn btn-ghost btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);" title="Logout">🚪 Logout</button>
         </div>
     </header>
 
@@ -49,30 +49,30 @@
         <!-- Hero Banner from Mockup -->
         <div class="hero-banner animate-in">
             <div class="hero-content-area">
-                <h1 class="hero-title" style="font-size: 2.85rem; font-weight: 900; line-height: 1.22; letter-spacing: -1px;">ระบบจัดการ<br><span style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.2));">เคลมโซล่าเซลล์</span><br>ครบวงจร</h1>
-                <p class="hero-subtitle">แจ้งปัญหา ติดตามสถานะ และรับการแก้ไขอย่างรวดเร็ว ภายใต้การรับประกันมาตรฐาน</p>
+                <h1 class="hero-title" style="font-size: 2.85rem; font-weight: 900; line-height: 1.22; letter-spacing: -1px;">Complete<br><span style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.2));">Solar Equipment Claim</span><br>Management System</h1>
+                <p class="hero-subtitle">Report problems, track status, and get rapid resolutions under standard warranty.</p>
                 <div class="hero-actions">
-                    <a href="/claim-form" class="btn-gold">แจ้งเคลมใหม่</a>
-                    <a href="/track-claim" class="btn-outline-white">ติดตามเคลม →</a>
+                    <a href="/claim-form" class="btn-gold">File New Claim</a>
+                    <a href="/track-claim" class="btn-outline-white">Track Claim →</a>
                 </div>
             </div>
             
             <div class="hero-stats-row" id="statsGrid">
                 <div class="hero-stat-item">
                     <div class="hero-stat-value" id="statTotal">124</div>
-                    <div class="hero-stat-label">เคสทั้งหมด</div>
+                    <div class="hero-stat-label">Total Claims</div>
                 </div>
                 <div class="hero-stat-item">
                     <div class="hero-stat-value" id="statSuccess">95%</div>
-                    <div class="hero-stat-label">อัตราความสำเร็จ</div>
+                    <div class="hero-stat-label">Success Rate</div>
                 </div>
                 <div class="hero-stat-item">
-                    <div class="hero-stat-value" id="statAvgTime">3.2 วัน</div>
-                    <div class="hero-stat-label">เวลาเฉลี่ยในการแก้ไข</div>
+                    <div class="hero-stat-value" id="statAvgTime">3.2 Days</div>
+                    <div class="hero-stat-label">Avg Resolution Time</div>
                 </div>
                 <div class="hero-stat-item">
-                    <div class="hero-stat-value" id="statResponse">24 ชม.</div>
-                    <div class="hero-stat-label">เวลาตอบสนอง</div>
+                    <div class="hero-stat-value" id="statResponse">24 Hrs</div>
+                    <div class="hero-stat-label">Response Time</div>
                 </div>
             </div>
         </div>
@@ -82,24 +82,24 @@
             <div class="quick-card" onclick="window.location.href='/claim-form'">
                 <div class="icon-wrapper">📄</div>
                 <div class="quick-card-text">
-                    <h3>แจ้งเรื่องเคลม</h3>
-                    <p>กรอกแบบฟอร์มออนไลน์ ระบุปัญหาและแนบหลักฐานได้ทันที</p>
+                    <h3>File a Claim</h3>
+                    <p>Fill out our online form, specify the issue, and attach evidence instantly.</p>
                 </div>
             </div>
             
             <div class="quick-card" onclick="window.location.href='/track-claim'">
                 <div class="icon-wrapper">🎯</div>
                 <div class="quick-card-text">
-                    <h3>ติดตามสถานะ</h3>
-                    <p>ตรวจสอบความคืบหน้าของเคลมแบบ real-time ทุกขั้นตอน</p>
+                    <h3>Track Status</h3>
+                    <p>Check your claim's progress in real-time at every step of the way.</p>
                 </div>
             </div>
             
             <div class="quick-card" onclick="window.location.href='/overview'">
                 <div class="icon-wrapper">🎛️</div>
                 <div class="quick-card-text">
-                    <h3>ภาพรวมสถิติ</h3>
-                    <p>รายงานและกราฟแสดงสรุปเคลมทั้งหมด สำหรับผู้ดูแลระบบ</p>
+                    <h3>Statistics Overview</h3>
+                    <p>Summary reports and performance charts showing all claims, for administrators.</p>
                 </div>
             </div>
         </div>

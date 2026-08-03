@@ -9,7 +9,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     const btn = document.getElementById('regBtn');
     
     btn.disabled = true;
-    btn.innerHTML = 'กำลังลงทะเบียน...';
+    btn.innerHTML = 'Registering...';
 
     try {
         const res = await fetch('/api/register', {
@@ -20,16 +20,16 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         const data = await res.json();
         
         if (data.success) {
-            alert('สมัครสมาชิกเรียบร้อย! กรุณาเข้าสู่ระบบ');
+            alert('Registration successful! Please login.');
             window.location.href = '/';
         } else {
-            alert(data.message || 'เกิดข้อผิดพลาดในการสมัครสมาชิก');
+            alert(data.message || 'Registration failed');
             btn.disabled = false;
-            btn.innerHTML = '✨ สมัครสมาชิก';
+            btn.innerHTML = '✨ Register';
         }
     } catch (err) {
-        alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+        alert('Connection error occurred');
         btn.disabled = false;
-        btn.innerHTML = '✨ สมัครสมาชิก';
+        btn.innerHTML = '✨ Register';
     }
 });

@@ -71,11 +71,396 @@ app.use(express.static(path.join(__dirname, 'public')));
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 
-if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('YOUR_SUPABASE')) {
-    console.warn('⚠️ Supabase credentials not found in .env. API endpoints will fail.');
+let useLocalDatabase = false;
+
+// Local JSON database file-based client to mimic Supabase client when offline
+function readLocalData() {
+    try {
+        if (fs.existsSync(DATA_FILE)) {
+            return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+        }
+    } catch (e) {
+        console.error('Error reading local claims file:', e);
+    }
+    return { claims: [], users: [] };
 }
 
-const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder');
+function writeLocalData(data) {
+    try {
+        if (!fs.existsSync(path.dirname(DATA_FILE))) {
+            fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
+        }
+        fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+    } catch (e) {
+        console.error('Error writing local claims file:', e);
+    }
+}
+
+// Map camelCase keys in claims.json to snake_case DB format
+function mapLocalClaimToDb(c) {
+    if (!c) return null;
+    const dbVal = { ...c };
+    dbVal.claim_number = c.claimNumber;
+    dbVal.created_at = c.createdAt;
+    dbVal.updated_at = c.updatedAt;
+    delete dbVal.claimNumber;
+    delete dbVal.createdAt;
+    delete dbVal.updatedAt;
+    return dbVal;
+}
+
+function mapDbClaimToLocal(c) {
+    if (!c) return null;
+    const local = { ...c };
+    local.claimNumber = c.claim_number;
+    local.createdAt = c.created_at;
+    local.updatedAt = c.updated_at;
+    delete local.claim_number;
+    delete local.created_at;
+    delete local.updated_at;
+    return local;
+}
+
+function mapLocalUserToDb(u) {
+    if (!u) return null;
+    const dbVal = { ...u };
+    dbVal.created_at = u.createdAt;
+    delete dbVal.createdAt;
+    return dbVal;
+}
+
+function mapDbUserToLocal(u) {
+    if (!u) return null;
+    const local = { ...u };
+    local.createdAt = u.created_at;
+    delete local.created_at;
+    return local;
+}
+
+class LocalQueryBuilder {
+    constructor(table) {
+        this.table = table; // 'claims' or 'users'
+        this.filters = [];
+        this.orderField = null;
+        this.orderAscending = true;
+        this.limitCount = null;
+        this.isSingle = false;
+        this.isCount = false;
+        
+        this.action = 'select'; // 'select', 'insert', 'update', 'delete', 'upsert'
+        this.actionData = null;
+        this.upsertConflict = null;
+    }
+
+    select(fields = '*', options = {}) {
+        if (options.count) {
+            this.isCount = true;
+        }
+        return this;
+    }
+
+    insert(rows) {
+        this.action = 'insert';
+        this.actionData = rows;
+        return this;
+    }
+
+    update(fields) {
+        this.action = 'update';
+        this.actionData = fields;
+        return this;
+    }
+
+    upsert(rows, options = {}) {
+        this.action = 'upsert';
+        this.actionData = rows;
+        this.upsertConflict = options.onConflict;
+        return this;
+    }
+
+    delete() {
+        this.action = 'delete';
+        return this;
+    }
+
+    eq(field, value) {
+        this.filters.push({ type: 'eq', field, value });
+        return this;
+    }
+
+    ilike(field, value) {
+        this.filters.push({ type: 'ilike', field, value });
+        return this;
+    }
+
+    or(filterString) {
+        this.filters.push({ type: 'or', filterString });
+        return this;
+    }
+
+    filter(field, operator, value) {
+        this.filters.push({ type: 'filter', field, operator, value });
+        return this;
+    }
+
+    order(field, { ascending = true } = {}) {
+        this.orderField = field;
+        this.orderAscending = ascending;
+        return this;
+    }
+
+    limit(count) {
+        this.limitCount = count;
+        return this;
+    }
+
+    single() {
+        this.isSingle = true;
+        return this;
+    }
+
+    // Awaitable Support
+    async then(resolve, reject) {
+        try {
+            const result = await this.execute();
+            resolve(result);
+        } catch (err) {
+            reject(err);
+        }
+    }
+
+    async execute() {
+        const fileData = readLocalData();
+        
+        // Load and map from local JSON schema (camelCase) to DB schema (snake_case)
+        const items = (fileData[this.table] || []).map(item => {
+            return this.table === 'claims' ? mapLocalClaimToDb(item) : mapLocalUserToDb(item);
+        });
+
+        // Helper to save DB schema items back to local JSON schema (camelCase)
+        const saveAllItems = (dbItems) => {
+            fileData[this.table] = dbItems.map(item => {
+                return this.table === 'claims' ? mapDbClaimToLocal(item) : mapDbUserToLocal(item);
+            });
+            writeLocalData(fileData);
+        };
+
+        if (this.action === 'insert') {
+            const rowsToInsert = Array.isArray(this.actionData) ? this.actionData : [this.actionData];
+            const inserted = [];
+            for (let row of rowsToInsert) {
+                const newRow = { 
+                    ...row, 
+                    id: row.id || uuidv4(),
+                    created_at: row.created_at || new Date().toISOString(),
+                    updated_at: row.updated_at || new Date().toISOString()
+                };
+                items.push(newRow);
+                inserted.push(newRow);
+            }
+            saveAllItems(items);
+            return { data: this.isSingle ? inserted[0] : inserted, error: null };
+        }
+
+        if (this.action === 'upsert') {
+            const rowsToInsert = Array.isArray(this.actionData) ? this.actionData : [this.actionData];
+            const inserted = [];
+            const conflictKey = this.upsertConflict;
+            
+            for (let row of rowsToInsert) {
+                let existingIndex = -1;
+                if (conflictKey) {
+                    existingIndex = items.findIndex(item => {
+                        let itemVal = item[conflictKey];
+                        let rowVal = row[conflictKey];
+                        if (typeof itemVal === 'string') itemVal = itemVal.toLowerCase();
+                        if (typeof rowVal === 'string') rowVal = rowVal.toLowerCase();
+                        return itemVal === rowVal;
+                    });
+                }
+                
+                if (existingIndex > -1) {
+                    items[existingIndex] = {
+                        ...items[existingIndex],
+                        ...row,
+                        updated_at: new Date().toISOString()
+                    };
+                    inserted.push(items[existingIndex]);
+                } else {
+                    const newRow = {
+                        ...row,
+                        id: row.id || uuidv4(),
+                        created_at: row.created_at || new Date().toISOString(),
+                        updated_at: row.updated_at || new Date().toISOString()
+                    };
+                    items.push(newRow);
+                    inserted.push(newRow);
+                }
+            }
+            saveAllItems(items);
+            return { data: this.isSingle ? inserted[0] : inserted, error: null };
+        }
+
+        let filteredItems = [...items];
+
+        const matchField = (item, field, filterType, filterValue) => {
+            let val;
+            if (field.includes('->>')) {
+                const parts = field.split('->>');
+                const objName = parts[0];
+                const propName = parts[1];
+                if (item[objName] && typeof item[objName] === 'object') {
+                    val = item[objName][propName];
+                } else if (item[objName] && typeof item[objName] === 'string') {
+                    try {
+                        const parsed = JSON.parse(item[objName]);
+                        val = parsed[propName];
+                    } catch (e) {}
+                }
+            } else {
+                val = item[field];
+            }
+
+            if (val === undefined || val === null) return false;
+
+            const strVal = String(val).toLowerCase();
+            const strFilter = String(filterValue).toLowerCase();
+
+            if (filterType === 'eq') {
+                return strVal === strFilter;
+            } else if (filterType === 'ilike') {
+                const cleanFilter = strFilter.replace(/%/g, '');
+                return strVal.includes(cleanFilter);
+            }
+            return false;
+        };
+
+        for (let filter of this.filters) {
+            if (filter.type === 'eq') {
+                filteredItems = filteredItems.filter(item => matchField(item, filter.field, 'eq', filter.value));
+            } else if (filter.type === 'ilike') {
+                filteredItems = filteredItems.filter(item => matchField(item, filter.field, 'ilike', filter.value));
+            } else if (filter.type === 'filter') {
+                if (filter.operator === 'ilike' || filter.operator === 'eq') {
+                    filteredItems = filteredItems.filter(item => matchField(item, filter.field, filter.operator, filter.value));
+                }
+            } else if (filter.type === 'or') {
+                const parts = filter.filterString.split(',');
+                filteredItems = filteredItems.filter(item => {
+                    return parts.some(part => {
+                        const subparts = part.split('.');
+                        if (subparts.length >= 3) {
+                            const field = subparts[0];
+                            const op = subparts[1];
+                            const val = subparts.slice(2).join('.');
+                            return matchField(item, field, op, val);
+                        }
+                        return false;
+                    });
+                });
+            }
+        }
+
+        if (this.action === 'update') {
+            const updateFields = this.actionData || {};
+            const updated = [];
+            for (let item of filteredItems) {
+                const originalItem = items.find(x => x.id === item.id);
+                if (originalItem) {
+                    Object.assign(originalItem, updateFields);
+                    originalItem.updated_at = new Date().toISOString();
+                    updated.push(originalItem);
+                }
+            }
+            saveAllItems(items);
+            return { data: this.isSingle ? updated[0] : updated, error: null };
+        }
+
+        if (this.action === 'delete') {
+            const deletedIds = new Set(filteredItems.map(x => x.id));
+            const newItems = items.filter(x => !deletedIds.has(x.id));
+            saveAllItems(newItems);
+            return { data: null, error: null };
+        }
+
+        if (this.orderField) {
+            filteredItems.sort((a, b) => {
+                let valA = a[this.orderField] || '';
+                let valB = b[this.orderField] || '';
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+                if (valA < valB) return this.orderAscending ? -1 : 1;
+                if (valA > valB) return this.orderAscending ? 1 : -1;
+                return 0;
+            });
+        }
+
+        if (this.limitCount !== null) {
+            filteredItems = filteredItems.slice(0, this.limitCount);
+        }
+
+        if (this.isCount) {
+            return { count: filteredItems.length, data: null, error: null };
+        }
+
+        const data = this.isSingle ? (filteredItems[0] || null) : filteredItems;
+        return { data, error: null };
+    }
+}
+
+if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('YOUR_SUPABASE') || supabaseUrl.includes('lfaawqiyxdqrncwpvfib')) {
+    console.warn('⚠️ Supabase credentials not found or invalid in .env. Defaulting to Local Database fallback.');
+    useLocalDatabase = true;
+}
+
+const actualSupabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder');
+
+// Perform a fast DNS lookup to check if Supabase hostname is reachable
+(async () => {
+    if (!useLocalDatabase) {
+        try {
+            const urlObj = new URL(supabaseUrl);
+            const dns = require('dns').promises;
+            await dns.lookup(urlObj.hostname);
+            console.log('✅ DNS check: Supabase host resolves.');
+        } catch (e) {
+            console.log('🔌 Supabase host not reachable. Falling back to Local Database.');
+            useLocalDatabase = true;
+        }
+    }
+})();
+
+const supabase = new Proxy(actualSupabase, {
+    get(target, prop, receiver) {
+        if (useLocalDatabase) {
+            if (prop === 'from') {
+                return (table) => new LocalQueryBuilder(table);
+            }
+            if (prop === 'storage') {
+                return {
+                    from: (bucket) => ({
+                        upload: async (fileName, buffer, options) => {
+                            try {
+                                const uploadDir = path.join(__dirname, 'public', 'uploads');
+                                if (!fs.existsSync(uploadDir)) {
+                                    fs.mkdirSync(uploadDir, { recursive: true });
+                                }
+                                fs.writeFileSync(path.join(uploadDir, fileName), buffer);
+                                return { data: { path: fileName }, error: null };
+                            } catch (e) {
+                                return { data: null, error: e };
+                            }
+                        },
+                        getPublicUrl: (fileName) => {
+                            return { data: { publicUrl: `/uploads/${fileName}` } };
+                        }
+                    })
+                };
+            }
+        }
+        return Reflect.get(target, prop, receiver);
+    }
+});
 
 function calculateExpiryDate(purchaseDateStr, periodStr) {
     if (!purchaseDateStr) return '';
@@ -157,7 +542,7 @@ async function uploadImagesToSupabase(base64Images) {
 
 // --- Data Migration ---
 async function migrateData() {
-    if (!fs.existsSync(DATA_FILE) || !supabaseUrl || supabaseUrl.includes('YOUR_SUPABASE')) return;
+    if (useLocalDatabase || !fs.existsSync(DATA_FILE) || !supabaseUrl || supabaseUrl.includes('YOUR_SUPABASE')) return;
 
     try {
         const { count: userCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
@@ -216,7 +601,7 @@ function formatClaim(c) {
 }
 
 // === SYNC TO EXCEL ===
-const statusLabelsExcel = { pending: 'รอดำเนินการ', reviewing: 'กำลังตรวจสอบ', approved: 'อนุมัติแล้ว', rejected: 'ไม่อนุมัติ', completed: 'เสร็จสิ้น' };
+const statusLabelsExcel = { pending: 'Pending', reviewing: 'Reviewing', approved: 'Approved', rejected: 'Rejected', completed: 'Completed' };
 const sevLabelsExcel = { 10: '10%', 50: '50%', 80: '80%', 100: '100%' };
 
 function buildExcelWorkbook(claimsData) {
@@ -225,18 +610,18 @@ function buildExcelWorkbook(claimsData) {
     wb.creator = 'Solar Claim System';
     wb.created = new Date();
 
-    const ws = wb.addWorksheet('รายการเคลม', { properties: { tabColor: { argb: 'FFF59E0B' } }, views: [{ state: 'frozen', ySplit: 1 }] });
+    const ws = wb.addWorksheet('Claims List', { properties: { tabColor: { argb: 'FFF59E0B' } }, views: [{ state: 'frozen', ySplit: 1 }] });
     ws.columns = [
-        { header: 'เลขที่เคลม', key: 'claimNumber', width: 18 }, { header: 'ชื่อลูกค้า', key: 'customerName', width: 22 },
-        { header: 'เบอร์โทร', key: 'phone', width: 16 }, { header: 'อีเมล', key: 'email', width: 24 },
-        { header: 'ที่อยู่', key: 'address', width: 30 }, { header: 'ประเภทอุปกรณ์', key: 'eqType', width: 20 },
-        { header: 'ยี่ห้อ', key: 'brand', width: 16 }, { header: 'รุ่น', key: 'model', width: 14 },
-        { header: 'Serial Number', key: 'serial', width: 20 }, { header: 'วันที่แจ้งเคลม', key: 'purchaseDate', width: 14 },
-        { header: 'เลขประกัน', key: 'warranty', width: 16 }, { header: 'ระยะประกัน', key: 'warPeriod', width: 14 },
-        { header: 'หมดประกัน', key: 'warExpiry', width: 14 }, { header: 'ปัญหา', key: 'problem', width: 40 },
-        { header: 'ความรุนแรง', key: 'severity', width: 14 }, { header: 'สถานะ', key: 'status', width: 16 },
-        { header: 'วันที่แจ้ง', key: 'createdAt', width: 20 }, { header: 'อัปเดตล่าสุด', key: 'updatedAt', width: 20 },
-        { header: 'จำนวนรูปภาพ', key: 'imageCount', width: 14 },
+        { header: 'Claim Number', key: 'claimNumber', width: 18 }, { header: 'Customer Name', key: 'customerName', width: 22 },
+        { header: 'Phone', key: 'phone', width: 16 }, { header: 'Email', key: 'email', width: 24 },
+        { header: 'Address', key: 'address', width: 30 }, { header: 'Equipment Type', key: 'eqType', width: 20 },
+        { header: 'Brand', key: 'brand', width: 16 }, { header: 'Model', key: 'model', width: 14 },
+        { header: 'Serial Number', key: 'serial', width: 20 }, { header: 'Purchase Date', key: 'purchaseDate', width: 14 },
+        { header: 'Warranty Number', key: 'warranty', width: 16 }, { header: 'Warranty Period', key: 'warPeriod', width: 14 },
+        { header: 'Warranty Expiry', key: 'warExpiry', width: 14 }, { header: 'Problem Description', key: 'problem', width: 40 },
+        { header: 'Severity', key: 'severity', width: 14 }, { header: 'Status', key: 'status', width: 16 },
+        { header: 'Created At', key: 'createdAt', width: 20 }, { header: 'Updated At', key: 'updatedAt', width: 20 },
+        { header: 'Image Count', key: 'imageCount', width: 14 },
     ];
 
     ws.getRow(1).eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; cell.font = { color: { argb: 'FFF59E0B' }, bold: true, size: 11 }; cell.alignment = { vertical: 'middle', horizontal: 'center' }; cell.border = { bottom: { style: 'medium', color: { argb: 'FFF59E0B' } } }; });
@@ -244,26 +629,26 @@ function buildExcelWorkbook(claimsData) {
 
     const statusColors = { pending: 'FFFBBF24', reviewing: 'FF3B82F6', approved: 'FF10B981', rejected: 'FFEF4444', completed: 'FF8B5CF6' };
     claims.forEach(c => {
-        const row = ws.addRow({ claimNumber: c.claimNumber, customerName: c.customer?.name || '', phone: c.customer?.phone || '', email: c.customer?.email || '', address: c.customer?.address || '', eqType: c.equipment?.type || '', brand: c.equipment?.brand || '', model: c.equipment?.model || '', serial: c.equipment?.serialNumber || '', purchaseDate: c.equipment?.purchaseDate || '', warranty: c.warranty?.number || '', warPeriod: c.warranty?.period || '', warExpiry: c.warranty?.expiryDate || '', problem: c.problem?.description || '', severity: sevLabelsExcel[c.problem?.severity] || c.problem?.severity || '', status: statusLabelsExcel[c.status] || c.status, createdAt: new Date(c.createdAt).toLocaleString('th-TH'), updatedAt: new Date(c.updatedAt).toLocaleString('th-TH'), imageCount: c.problem?.images?.length || 0 });
+        const row = ws.addRow({ claimNumber: c.claimNumber, customerName: c.customer?.name || '', phone: c.customer?.phone || '', email: c.customer?.email || '', address: c.customer?.address || '', eqType: c.equipment?.type || '', brand: c.equipment?.brand || '', model: c.equipment?.model || '', serial: c.equipment?.serialNumber || '', purchaseDate: c.equipment?.purchaseDate || '', warranty: c.warranty?.number || '', warPeriod: c.warranty?.period || '', warExpiry: c.warranty?.expiryDate || '', problem: c.problem?.description || '', severity: sevLabelsExcel[c.problem?.severity] || c.problem?.severity || '', status: statusLabelsExcel[c.status] || c.status, createdAt: new Date(c.createdAt).toLocaleString('en-US'), updatedAt: new Date(c.updatedAt).toLocaleString('en-US'), imageCount: c.problem?.images?.length || 0 });
         const statusCell = row.getCell('status'); const sColor = statusColors[c.status]; if (sColor) { statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sColor } }; statusCell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; } statusCell.alignment = { horizontal: 'center' };
         const sevCell = row.getCell('severity'); const sevColors = { 10: 'FF10B981', 50: 'FFFBBF24', 80: 'FFF97316', 100: 'FFEF4444' }; const sc = sevColors[c.problem?.severity]; if (sc) { sevCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sc } }; sevCell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; } sevCell.alignment = { horizontal: 'center' };
         row.alignment = { vertical: 'middle', wrapText: true };
     });
     ws.autoFilter = { from: 'A1', to: `S${claims.length + 1}` };
 
-    const ws2 = wb.addWorksheet('สรุป', { properties: { tabColor: { argb: 'FF10B981' } } });
-    ws2.columns = [{ header: 'รายการ', key: 'label', width: 25 }, { header: 'จำนวน', key: 'count', width: 12 }];
+    const ws2 = wb.addWorksheet('Summary', { properties: { tabColor: { argb: 'FF10B981' } } });
+    ws2.columns = [{ header: 'Category', key: 'label', width: 25 }, { header: 'Count', key: 'count', width: 12 }];
     ws2.getRow(1).eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; cell.font = { color: { argb: 'FFF59E0B' }, bold: true, size: 11 }; cell.alignment = { vertical: 'middle', horizontal: 'center' }; });
 
-    ws2.addRow({ label: 'เคลมทั้งหมด', count: claims.length });
-    ws2.addRow({ label: 'รอดำเนินการ', count: claims.filter(c => c.status === 'pending').length });
-    ws2.addRow({ label: 'กำลังตรวจสอบ', count: claims.filter(c => c.status === 'reviewing').length });
-    ws2.addRow({ label: 'อนุมัติแล้ว', count: claims.filter(c => c.status === 'approved').length });
-    ws2.addRow({ label: 'ไม่อนุมัติ', count: claims.filter(c => c.status === 'rejected').length });
-    ws2.addRow({ label: 'เสร็จสิ้น', count: claims.filter(c => c.status === 'completed').length });
+    ws2.addRow({ label: 'Total Claims', count: claims.length });
+    ws2.addRow({ label: 'Pending', count: claims.filter(c => c.status === 'pending').length });
+    ws2.addRow({ label: 'Reviewing', count: claims.filter(c => c.status === 'reviewing').length });
+    ws2.addRow({ label: 'Approved', count: claims.filter(c => c.status === 'approved').length });
+    ws2.addRow({ label: 'Rejected', count: claims.filter(c => c.status === 'rejected').length });
+    ws2.addRow({ label: 'Completed', count: claims.filter(c => c.status === 'completed').length });
     ws2.addRow({});
-    ws2.addRow({ label: '--- ตามประเภทอุปกรณ์ ---', count: '' });
-    const eqCount = {}; claims.forEach(c => { eqCount[c.equipment?.type || 'อื่นๆ'] = (eqCount[c.equipment?.type || 'อื่นๆ'] || 0) + 1; });
+    ws2.addRow({ label: '--- By Equipment Type ---', count: '' });
+    const eqCount = {}; claims.forEach(c => { eqCount[c.equipment?.type || 'Other'] = (eqCount[c.equipment?.type || 'Other'] || 0) + 1; });
     Object.entries(eqCount).forEach(([k, v]) => ws2.addRow({ label: k, count: v }));
 
     return wb;
@@ -281,12 +666,12 @@ app.post('/api/register', async (req, res) => {
 
     // Using simple ILIKE for case-insensitive email check
     const { data: existingUser } = await supabase.from('users').select('*').ilike('email', email).single();
-    if (existingUser) return res.status(400).json({ success: false, message: 'อีเมลนี้ถูกใช้งานแล้ว' });
+    if (existingUser) return res.status(400).json({ success: false, message: 'This email is already in use' });
 
     const { error } = await supabase.from('users').insert([{ id: uuidv4(), name, email, phone, password, role: 'customer' }]);
-    if (error) return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์' });
+    if (error) return res.status(500).json({ success: false, message: 'Server error occurred' });
 
-    res.status(201).json({ success: true, message: 'ลงทะเบียนสำเร็จ' });
+    res.status(201).json({ success: true, message: 'Registration successful' });
 });
 
 app.post('/api/login', async (req, res) => {
@@ -310,7 +695,7 @@ app.post('/api/login', async (req, res) => {
 
     if (username.includes('@')) {
         const { data: isRegistered } = await supabase.from('users').select('*').ilike('email', username).single();
-        if (isRegistered) return res.status(401).json({ success: false, message: 'รหัสผ่านไม่ถูกต้องสำหรับบัญชีนี้' });
+        if (isRegistered) return res.status(401).json({ success: false, message: 'Invalid password for this account' });
 
         // Filter JSON column logic in Supabase using ->>
         const { data: customerClaims } = await supabase.from('claims')
@@ -325,13 +710,13 @@ app.post('/api/login', async (req, res) => {
             return res.json({ success: true, user: { name: cust.name, email: username, phone: cust.phone, role: 'customer', avatarUrl } });
         }
     }
-    res.status(401).json({ success: false, message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
+    res.status(401).json({ success: false, message: 'Invalid username or password' });
 });
 
 app.put('/api/users/profile', async (req, res) => {
     let { email, name, phone, password, avatarUrl } = req.body;
     if (!email) {
-        return res.status(400).json({ success: false, message: 'กรุณาระบุอีเมล' });
+        return res.status(400).json({ success: false, message: 'Please specify email' });
     }
 
     try {
@@ -341,7 +726,7 @@ app.put('/api/users/profile', async (req, res) => {
                 if (uploadedUrl) {
                     avatarUrl = uploadedUrl;
                 } else {
-                    return res.status(500).json({ success: false, message: 'ไม่สามารถอัปโหลดรูปภาพโปรไฟล์ได้' });
+                    return res.status(500).json({ success: false, message: 'Unable to upload profile picture' });
                 }
             }
             const avatars = getAvatars();
@@ -354,7 +739,7 @@ app.put('/api/users/profile', async (req, res) => {
             updateData.password = password.trim();
         }
 
-        const { data, error } = await supabase
+        let { data, error } = await supabase
             .from('users')
             .update(updateData)
             .ilike('email', email)
@@ -362,11 +747,29 @@ app.put('/api/users/profile', async (req, res) => {
 
         if (error) {
             console.error('Update profile error:', error);
-            return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการอัปเดตข้อมูล' });
+            return res.status(500).json({ success: false, message: 'Error updating user profile' });
         }
 
         if (!data || data.length === 0) {
-            return res.status(404).json({ success: false, message: 'ไม่พบผู้ใช้นี้ในระบบ' });
+            // Auto-create user record if they logged in via dynamic claims fallback
+            const newRecord = {
+                id: uuidv4(),
+                name: name || email.split('@')[0],
+                email: email,
+                phone: phone || '',
+                role: 'customer',
+                password: password && password.trim() !== '' ? password.trim() : '1234'
+            };
+            const { data: insertedData, error: insertError } = await supabase
+                .from('users')
+                .insert([newRecord])
+                .select('*');
+            
+            if (insertError) {
+                console.error('Insert profile user error:', insertError);
+                return res.status(500).json({ success: false, message: 'Error creating new user account' });
+            }
+            data = insertedData;
         }
 
         const updatedUser = data[0];
@@ -374,7 +777,7 @@ app.put('/api/users/profile', async (req, res) => {
         const finalAvatarUrl = avatars[updatedUser.email] || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(updatedUser.name || updatedUser.email)}&backgroundColor=b6e3f4`;
         res.json({
             success: true,
-            message: 'อัปเดตข้อมูลส่วนตัวสำเร็จ',
+            message: 'Profile updated successfully',
             user: {
                 name: updatedUser.name,
                 email: updatedUser.email,
@@ -385,21 +788,21 @@ app.put('/api/users/profile', async (req, res) => {
         });
     } catch (err) {
         console.error('Update profile server error:', err);
-        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' });
+        res.status(500).json({ success: false, message: 'Internal server error occurred' });
     }
 });
 
 app.post('/api/users/avatar', async (req, res) => {
     let { email, avatarUrl } = req.body;
     if (!email || !avatarUrl) {
-        return res.status(400).json({ success: false, message: 'กรุณาระบุข้อมูลให้ครบถ้วน' });
+        return res.status(400).json({ success: false, message: 'Please provide all required fields' });
     }
 
     try {
         if (avatarUrl.startsWith('data:')) {
             const uploadedUrl = await uploadSingleImageToSupabase(avatarUrl);
             if (!uploadedUrl) {
-                return res.status(500).json({ success: false, message: 'ไม่สามารถอัปโหลดรูปภาพโปรไฟล์ได้' });
+                return res.status(500).json({ success: false, message: 'Unable to upload profile picture' });
             }
             avatarUrl = uploadedUrl;
         }
@@ -408,10 +811,10 @@ app.post('/api/users/avatar', async (req, res) => {
         avatars[email] = avatarUrl;
         saveAvatars(avatars);
 
-        res.json({ success: true, message: 'อัปเดตรูปโปรไฟล์สำเร็จ', avatarUrl });
+        res.json({ success: true, message: 'Profile picture updated successfully', avatarUrl });
     } catch (err) {
         console.error('Set avatar error:', err);
-        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการตั้งค่ารูปโปรไฟล์' });
+        res.status(500).json({ success: false, message: 'Error updating profile picture' });
     }
 });
 
@@ -420,7 +823,7 @@ app.get('/api/users/avatars', async (req, res) => {
         const { data: users, error } = await supabase.from('users').select('name, email');
         if (error) {
             console.error('Error fetching users for avatars mapping:', error);
-            return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการดึงข้อมูล' });
+            return res.status(500).json({ success: false, message: 'Error retrieving user avatars' });
         }
 
         const avatars = getAvatars();
@@ -443,7 +846,7 @@ app.get('/api/users/avatars', async (req, res) => {
         res.json({ success: true, avatars: avatarMapping, names: nameMapping });
     } catch (err) {
         console.error('Get avatars mapping error:', err);
-        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' });
+        res.status(500).json({ success: false, message: 'Internal server error occurred' });
     }
 });
 
@@ -460,7 +863,7 @@ app.get('/api/claims', async (req, res) => {
     }
 
     const { data: claims, error } = await query;
-    if (error) return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการดึงข้อมูล', error });
+    if (error) return res.status(500).json({ success: false, message: 'Error fetching claims data', error });
 
     const formattedData = claims.map(formatClaim);
     res.json({ success: true, data: formattedData, total: formattedData.length });
@@ -468,7 +871,7 @@ app.get('/api/claims', async (req, res) => {
 
 app.get('/api/claims/:id', async (req, res) => {
     const { data: claim, error } = await supabase.from('claims').select('*').eq('id', req.params.id).single();
-    if (error || !claim) return res.status(404).json({ success: false, message: 'ไม่พบข้อมูลเคลม' });
+    if (error || !claim) return res.status(404).json({ success: false, message: 'Claim not found' });
     res.json({ success: true, data: formatClaim(claim) });
 });
 
@@ -497,10 +900,10 @@ app.get('/api/notifications', async (req, res) => {
                 id: `${formattedClaim.id}_new`,
                 claimId: formattedClaim.id,
                 claimNumber: formattedClaim.claimNumber,
-                title: role === 'admin' ? `มีใบเคลมใหม่ ${formattedClaim.claimNumber}` : `ใบเคลม ${formattedClaim.claimNumber} ส่งสำเร็จ`,
+                title: role === 'admin' ? `New Claim ${formattedClaim.claimNumber}` : `Claim ${formattedClaim.claimNumber} Submitted`,
                 description: role === 'admin' 
-                    ? `โดยคุณ ${formattedClaim.customer?.name || 'ลูกค้า'}` 
-                    : `ระบบได้รับคำขอเคลมและกำลังรอดำเนินการตรวจสอบอุปกรณ์`,
+                    ? `By ${formattedClaim.customer?.name || 'Customer'}` 
+                    : `We have received your claim request and it is pending verification.`,
                 date: formattedClaim.createdAt
             });
 
@@ -512,8 +915,8 @@ app.get('/api/notifications', async (req, res) => {
                         id: `${formattedClaim.id}_status_${i}`,
                         claimId: formattedClaim.id,
                         claimNumber: formattedClaim.claimNumber,
-                        title: `ใบเคลม ${formattedClaim.claimNumber} เปลี่ยนสถานะ`,
-                        description: `สถานะใหม่: ${statusName} (${t.note || 'ไม่มีรายละเอียด'})`,
+                        title: `Claim ${formattedClaim.claimNumber} Status Changed`,
+                        description: `New status: ${statusName} (${t.note || 'No details'})`,
                         date: t.date
                     });
                 });
@@ -531,8 +934,8 @@ app.get('/api/notifications', async (req, res) => {
                             id: `${formattedClaim.id}_note_${i}`,
                             claimId: formattedClaim.id,
                             claimNumber: formattedClaim.claimNumber,
-                            title: `ข้อความใหม่ในใบเคลม ${formattedClaim.claimNumber}`,
-                            description: `"${n.text.length > 40 ? n.text.slice(0, 40) + '...' : n.text}" โดย ${n.author}`,
+                            title: `New message on Claim ${formattedClaim.claimNumber}`,
+                            description: `"${n.text.length > 40 ? n.text.slice(0, 40) + '...' : n.text}" by ${n.author}`,
                             date: n.createdAt
                         });
                     }
@@ -559,7 +962,7 @@ app.get('/api/claims/:id/pdf', async (req, res) => {
     try {
         const { data: claim, error } = await supabase.from('claims').select('claim_number').eq('id', id).single();
         if (error || !claim) {
-            return res.status(404).send('ไม่พบข้อมูลเคลม / Claim not found');
+            return res.status(404).send('Claim not found');
         }
         const claimNumber = claim.claim_number || 'UNKNOWN';
 
@@ -623,7 +1026,7 @@ app.get('/api/claims/:id/pdf', async (req, res) => {
         if (browser) {
             try { await browser.close(); } catch(e) {}
         }
-        res.status(500).send('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF / Failed to generate PDF');
+        res.status(500).send('Failed to generate PDF');
     }
 });
 
@@ -665,18 +1068,18 @@ app.post('/api/claims', async (req, res) => {
         },
         problem: req.body.problem,
         status: 'pending',
-        timeline: [{ status: 'pending', date: new Date().toISOString(), note: 'รับเรื่องเคลมเข้าระบบ' }],
+        timeline: [{ status: 'pending', date: new Date().toISOString(), note: 'Claim submitted successfully' }],
         notes: []
     };
 
     const { data, error } = await supabase.from('claims').insert([newClaim]).select().single();
-    if (error) return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', error });
+    if (error) return res.status(500).json({ success: false, message: 'Error saving data', error });
     res.status(201).json({ success: true, data: formatClaim(data) });
 });
 
 app.put('/api/claims/:id', async (req, res) => {
     const { data: currentClaim } = await supabase.from('claims').select('*').eq('id', req.params.id).single();
-    if (!currentClaim) return res.status(404).json({ success: false, message: 'ไม่พบข้อมูลเคลม' });
+    if (!currentClaim) return res.status(404).json({ success: false, message: 'Claim not found' });
 
     // Upload any new base64 images if problem is updated
     let problemUpdates = req.body.problem || currentClaim.problem;
@@ -706,19 +1109,19 @@ app.put('/api/claims/:id', async (req, res) => {
     };
 
     const { data, error } = await supabase.from('claims').update(updates).eq('id', req.params.id).select().single();
-    if (error) return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
+    if (error) return res.status(500).json({ success: false, message: 'Error saving data' });
     res.json({ success: true, data: formatClaim(data) });
 });
 
 app.patch('/api/claims/:id/status', async (req, res) => {
-    const labels = { pending: 'รอดำเนินการ', reviewing: 'กำลังตรวจสอบ', approved: 'อนุมัติแล้ว', rejected: 'ไม่อนุมัติ', completed: 'เสร็จสิ้น' };
+    const labels = { pending: 'Pending', reviewing: 'Reviewing', approved: 'Approved', rejected: 'Rejected', completed: 'Completed' };
     const { data: claim } = await supabase.from('claims').select('*').eq('id', req.params.id).single();
-    if (!claim) return res.status(404).json({ success: false, message: 'ไม่พบข้อมูลเคลม' });
+    if (!claim) return res.status(404).json({ success: false, message: 'Claim not found' });
 
     const newTimeline = [...(claim.timeline || []), {
         status: req.body.status,
         date: new Date().toISOString(),
-        note: req.body.note || `เปลี่ยนสถานะเป็น: ${labels[req.body.status] || req.body.status}`
+        note: req.body.note || `Status updated to: ${labels[req.body.status] || req.body.status}`
     }];
 
     const { data, error } = await supabase.from('claims').update({
@@ -727,13 +1130,13 @@ app.patch('/api/claims/:id/status', async (req, res) => {
         updated_at: new Date().toISOString()
     }).eq('id', req.params.id).select().single();
 
-    if (error) return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
+    if (error) return res.status(500).json({ success: false, message: 'Error saving data' });
     res.json({ success: true, data: formatClaim(data) });
 });
 
 app.post('/api/claims/:id/notes', async (req, res) => {
     const { data: claim } = await supabase.from('claims').select('*').eq('id', req.params.id).single();
-    if (!claim) return res.status(404).json({ success: false, message: 'ไม่พบข้อมูลเคลม' });
+    if (!claim) return res.status(404).json({ success: false, message: 'Claim not found' });
 
     let imageUrl = null;
     if (req.body.image) {
@@ -761,14 +1164,14 @@ app.post('/api/claims/:id/notes', async (req, res) => {
         updated_at: new Date().toISOString()
     }).eq('id', req.params.id).select().single();
 
-    if (error) return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
+    if (error) return res.status(500).json({ success: false, message: 'Error saving data' });
     res.json({ success: true, data: note });
 });
 
 app.delete('/api/claims/:id', async (req, res) => {
     const { error } = await supabase.from('claims').delete().eq('id', req.params.id);
-    if (error) return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการลบข้อมูล' });
-    res.json({ success: true, message: 'ลบเคลมเรียบร้อย' });
+    if (error) return res.status(500).json({ success: false, message: 'Error deleting claim' });
+    res.json({ success: true, message: 'Claim deleted successfully' });
 });
 
 app.get('/api/stats', async (req, res) => {
@@ -791,7 +1194,7 @@ app.get('/api/stats', async (req, res) => {
             completed: claims.filter(c => c.status === 'completed').length
         };
         const eqStats = {}; claims.forEach(c => { eqStats[c.equipment.type] = (eqStats[c.equipment.type] || 0) + 1; });
-        const mNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        const mNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const monthly = [];
         for (let i = 5; i >= 0; i--) {
             const d = new Date(); d.setMonth(d.getMonth() - i); const m = d.getMonth(), y = d.getFullYear();
@@ -827,7 +1230,7 @@ app.get('/api/stats', async (req, res) => {
 
         res.json({ success: true, data: { stats: s, equipmentStats: eqStats, monthlyStats: monthly, severityStats: sevStats, avgResolutionDays } });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการดึงสถิติ' });
+        res.status(500).json({ success: false, message: 'Error retrieving statistics' });
     }
 });
 
@@ -859,14 +1262,14 @@ app.get('/api/export/excel', async (req, res) => {
         res.send(buffer);
     } catch (err) {
         console.error('Excel export error:', err);
-        res.status(500).json({ success: false, message: 'ไม่สามารถสร้างไฟล์ Excel ได้' });
+        res.status(500).json({ success: false, message: 'Failed to generate Excel file' });
     }
 });
 
 app.post('/api/import/excel', async (req, res) => {
     const { fileData, fileName } = req.body;
     if (!fileData) {
-        return res.status(400).json({ success: false, message: 'ไม่พบข้อมูลไฟล์ที่อัปโหลด' });
+        return res.status(400).json({ success: false, message: 'No uploaded file data found' });
     }
 
     try {
@@ -883,11 +1286,11 @@ app.post('/api/import/excel', async (req, res) => {
             ws = workbook.getWorksheet(1) || workbook.worksheets[0];
         } else {
             await workbook.xlsx.load(buffer);
-            ws = workbook.getWorksheet('รายการเคลม') || workbook.getWorksheet(1);
+            ws = workbook.getWorksheet('Claims List') || workbook.getWorksheet(1);
         }
 
         if (!ws) {
-            return res.status(400).json({ success: false, message: isCsv ? 'ไม่สามารถอ่านไฟล์ CSV ได้' : 'ไม่พบตาราง "รายการเคลม" ในไฟล์ Excel' });
+            return res.status(400).json({ success: false, message: isCsv ? 'Unable to read CSV file' : 'Worksheet "Claims List" not found in Excel file' });
         }
 
         const claimsToInsert = [];
@@ -1018,7 +1421,7 @@ app.post('/api/import/excel', async (req, res) => {
                 warranty: { number: warNumber, period: warPeriod, expiryDate: finalExpiry },
                 problem: { description: problemDesc, severity, images: [] },
                 status: status,
-                timeline: [{ status: status, date: createdAt, note: 'นำเข้าข้อมูลเคลมจากไฟล์ Excel' }],
+                timeline: [{ status: status, date: createdAt, note: 'Claim imported from Excel file' }],
                 notes: [],
                 created_at: createdAt,
                 updated_at: createdAt
@@ -1026,14 +1429,14 @@ app.post('/api/import/excel', async (req, res) => {
         });
 
         if (claimsToInsert.length === 0) {
-            return res.status(400).json({ success: false, message: 'ไม่พบรายการเคลมที่ถูกต้องในไฟล์ Excel' });
+            return res.status(400).json({ success: false, message: 'No valid claims found in Excel file' });
         }
 
         // Upsert into Supabase on claim_number conflict
         const { error } = await supabase.from('claims').upsert(claimsToInsert, { onConflict: 'claim_number' });
         if (error) {
             console.error('Supabase Import Upsert Error:', error);
-            return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูลลงฐานข้อมูล' });
+            return res.status(500).json({ success: false, message: 'Error saving data to the database' });
         }
 
         // Fetch all claims to sync to Excel cache
@@ -1042,10 +1445,10 @@ app.post('/api/import/excel', async (req, res) => {
             await syncToExcel(allClaims);
         }
 
-        res.json({ success: true, message: 'นำเข้าข้อมูลสำเร็จ', count: claimsToInsert.length });
+        res.json({ success: true, message: 'Data imported successfully', count: claimsToInsert.length });
     } catch (err) {
         console.error('Import excel API error:', err);
-        res.status(500).json({ success: false, message: 'ไม่สามารถประมวลผลไฟล์ Excel ได้' });
+        res.status(500).json({ success: false, message: 'Unable to process Excel file' });
     }
 });
 
