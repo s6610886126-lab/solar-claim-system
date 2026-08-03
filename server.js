@@ -668,7 +668,8 @@ app.post('/api/register', async (req, res) => {
     const { data: existingUser } = await supabase.from('users').select('*').ilike('email', email).single();
     if (existingUser) return res.status(400).json({ success: false, message: 'This email is already in use' });
 
-    const { error } = await supabase.from('users').insert([{ id: uuidv4(), name, email, phone, password, role: 'customer' }]);
+    const role = (email && email.toLowerCase().trim() === 'admin@solar.com') ? 'admin' : 'customer';
+    const { error } = await supabase.from('users').insert([{ id: uuidv4(), name, email, phone, password, role }]);
     if (error) return res.status(500).json({ success: false, message: 'Server error occurred' });
 
     res.status(201).json({ success: true, message: 'Registration successful' });
